@@ -12,6 +12,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.Duration;
+import java.time.ZoneId;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -24,7 +25,8 @@ import org.slf4j.LoggerFactory;
 
 import io.debezium.annotation.VisibleForTesting;
 import io.debezium.config.Configuration;
-import io.debezium.connector.hana.PostgresType;
+import io.debezium.connector.hana.HanaType;
+import io.debezium.connector.hana.SourceTimestampMode;
 import io.debezium.connector.hana.TypeRegistry;
 import io.debezium.connector.hana.spi.SlotState;
 import io.debezium.jdbc.JdbcConfiguration;
@@ -37,19 +39,20 @@ import io.debezium.util.Clock;
 import io.debezium.util.Metronome;
 
 /**
- * {@link JdbcConnection} connection extension used for connecting to Postgres instances.
+ * {@link JdbcConnection} connection extension used for connecting to SAP HANA instances.
  *
- * @author Horia Chiorean
+ * @author Joao Tavares
  */
-public class PostgresConnection extends JdbcConnection {
+public class HanaConnection extends JdbcConnection {
 
-    private static Logger LOGGER = LoggerFactory.getLogger(PostgresConnection.class);
+    private static Logger LOGGER = LoggerFactory.getLogger(HanaConnection.class);
 
-    private static final String URL_PATTERN = "jdbc:postgresql://${" + JdbcConfiguration.HOSTNAME + "}:${"
-            + JdbcConfiguration.PORT + "}/${" + JdbcConfiguration.DATABASE + "}";
+    private static final String URL_PATTERN = "jdbc:sap://${" + JdbcConfiguration.HOSTNAME + "}:${"
+            + JdbcConfiguration.PORT + "}/?databaseName=${" + JdbcConfiguration.DATABASE + "}";
+    
     protected static final ConnectionFactory FACTORY = JdbcConnection.patternBasedFactory(URL_PATTERN,
-            org.postgresql.Driver.class.getName(),
-            PostgresConnection.class.getClassLoader());
+    		com.sap.db.jdbc.Driver.class.getName(),
+            HanaConnection.class.getClassLoader());
 
     /**
      * Obtaining a replication slot may fail if there's a pending transaction. We're retrying to get a slot for 30 min.
@@ -61,14 +64,15 @@ public class PostgresConnection extends JdbcConnection {
     private final TypeRegistry typeRegistry;
 
     private final Charset databaseCharset;
+    
 
     /**
-     * Creates a Postgres connection using the supplied configuration.
+     * Creates a SAP Hana connection using the supplied configuration.
      *
      * @param config {@link Configuration} instance, may not be null.
      */
-    public PostgresConnection(Configuration config) {
-        super(config, FACTORY, PostgresConnection::validateServerVersion, PostgresConnection::defaultSettings);
+    public HanaConnection(Configuration config) {
+        super(config, FACTORY);
         this.typeRegistry = new TypeRegistry(this);
         databaseCharset = determineDatabaseCharset();
     }
@@ -90,6 +94,7 @@ public class PostgresConnection extends JdbcConnection {
      * @return the replica identity information; never null
      * @throws SQLException if there is a problem obtaining the replica identity information for the given table
      */
+    /* IS THIS NECESSARY?? HOW CAN WE GET THIS IN SAP HANA?
     public ServerInfo.ReplicaIdentity readReplicaIdentityInfo(TableId tableId) throws SQLException {
         String statement = "SELECT relreplident FROM pg_catalog.pg_class c " +
                 "LEFT JOIN pg_catalog.pg_namespace n ON c.relnamespace=n.oid " +
@@ -109,6 +114,7 @@ public class PostgresConnection extends JdbcConnection {
         });
         return ServerInfo.ReplicaIdentity.parseFromDB(replIdentity.toString());
     }
+    */
 
     /**
      * Returns the current state of the replication slot
@@ -117,6 +123,7 @@ public class PostgresConnection extends JdbcConnection {
      * @return the {@link SlotState} or null, if no slot state is found
      * @throws SQLException
      */
+    /* IS THIS NECESSARY?? HOW CAN WE GET THIS IN SAP HANA?
     public SlotState getReplicationSlotState(String slotName, String pluginName) throws SQLException {
         ServerInfo.ReplicationSlot slot;
         try {
@@ -133,6 +140,8 @@ public class PostgresConnection extends JdbcConnection {
             throw new ConnectException("Interrupted while waiting for valid replication slot info", e);
         }
     }
+    */
+
 
     /**
      * Fetches the state of a replication stage given a slot name and plugin name
@@ -142,6 +151,7 @@ public class PostgresConnection extends JdbcConnection {
      *         the slot is not valid
      * @throws SQLException is thrown by the underlying JDBC
      */
+    /* IS THIS NECESSARY?? HOW CAN WE GET THIS IN SAP HANA?
     private ServerInfo.ReplicationSlot fetchReplicationSlotInfo(String slotName, String pluginName) throws SQLException {
         final String database = database();
         final ServerInfo.ReplicationSlot slot = queryForSlot(slotName, database, pluginName,
@@ -167,12 +177,13 @@ public class PostgresConnection extends JdbcConnection {
                 });
         return slot;
     }
+    */
 
     /**
      * Fetches a replication slot, repeating the query until either the slot is created or until
      * the max number of attempts has been reached
      *
-     * To fetch the slot without the retries, use the {@link PostgresConnection#fetchReplicationSlotInfo} call
+     * To fetch the slot without the retries, use the {@link HanaConnection#fetchReplicationSlotInfo} call
      * @param slotName the slot name
      * @param pluginName the name of the plugin
      * @return the {@link ServerInfo.ReplicationSlot} object or a {@link ServerInfo.ReplicationSlot#INVALID} if
@@ -180,6 +191,7 @@ public class PostgresConnection extends JdbcConnection {
      * @throws SQLException is thrown by the underyling jdbc driver
      * @throws InterruptedException is thrown if we don't return an answer within the set number of retries
      */
+    /* IS THIS NECESSARY?? HOW CAN WE GET THIS IN SAP HANA?
     @VisibleForTesting
     ServerInfo.ReplicationSlot readReplicationSlotInfo(String slotName, String pluginName) throws SQLException, InterruptedException {
         final String database = database();
@@ -210,11 +222,13 @@ public class PostgresConnection extends JdbcConnection {
             statement.setString(3, pluginName);
         }, map);
     }
+    */
 
     /**
      * Obtains the LSN to resume streaming from. On PG 9.5 there is no confirmed_flushed_lsn yet, so restart_lsn will be
      * read instead. This may result in more records to be re-read after a restart.
      */
+    /* IS THIS NECESSARY?? HOW CAN WE GET THIS IN SAP HANA?
     private Long parseConfirmedFlushLsn(String slotName, String pluginName, String database, ResultSet rs) {
         Long confirmedFlushedLsn = null;
 
@@ -267,6 +281,7 @@ public class PostgresConnection extends JdbcConnection {
         }
         return lsn;
     }
+    */
 
     /**
      * Drops a replication slot that was created on the DB
@@ -274,6 +289,7 @@ public class PostgresConnection extends JdbcConnection {
      * @param slotName the name of the replication slot, may not be null
      * @return {@code true} if the slot was dropped, {@code false} otherwise
      */
+    /* IS THIS NECESSARY?? HOW CAN WE GET THIS IN SAP HANA?
     public boolean dropReplicationSlot(String slotName) {
         try {
             execute("select pg_drop_replication_slot('" + slotName + "')");
@@ -295,6 +311,7 @@ public class PostgresConnection extends JdbcConnection {
             return false;
         }
     }
+    */
 
     /**
      * Drops the debezium publication that was created.
@@ -325,7 +342,7 @@ public class PostgresConnection extends JdbcConnection {
             super.close();
         }
         catch (SQLException e) {
-            LOGGER.error("Unexpected error while closing Postgres connection", e);
+            LOGGER.error("Unexpected error while closing SAP HANA connection", e);
         }
     }
 
@@ -335,6 +352,7 @@ public class PostgresConnection extends JdbcConnection {
      * @return a PG transaction identifier, or null if no tx is active
      * @throws SQLException if anything fails.
      */
+    /* IS THIS NECESSARY?? HOW CAN WE GET THIS IN SAP HANA?
     public Long currentTransactionId() throws SQLException {
         AtomicLong txId = new AtomicLong(0);
         query("select * from txid_current()", rs -> {
@@ -345,6 +363,7 @@ public class PostgresConnection extends JdbcConnection {
         long value = txId.get();
         return value > 0 ? value : null;
     }
+    */
 
     /**
      * Returns the current position in the server tx log.
@@ -352,6 +371,7 @@ public class PostgresConnection extends JdbcConnection {
      * @return a long value, never negative
      * @throws SQLException if anything unexpected fails.
      */
+    /* IS THIS NECESSARY?? HOW CAN WE GET THIS IN SAP HANA?
     public long currentXLogLocation() throws SQLException {
         AtomicLong result = new AtomicLong(0);
         int majorVersion = connection().getMetaData().getDatabaseMajorVersion();
@@ -363,6 +383,7 @@ public class PostgresConnection extends JdbcConnection {
         });
         return result.get();
     }
+    */
 
     /**
      * Returns information about the PG server to which this instance is connected.
@@ -370,6 +391,7 @@ public class PostgresConnection extends JdbcConnection {
      * @return a {@link ServerInfo} instance, never {@code null}
      * @throws SQLException if anything fails
      */
+    /* IS THIS NECESSARY?? HOW CAN WE GET THIS IN SAP HANA?
     public ServerInfo serverInfo() throws SQLException {
         ServerInfo serverInfo = new ServerInfo();
         query("SELECT version(), current_user, current_database()", rs -> {
@@ -393,6 +415,7 @@ public class PostgresConnection extends JdbcConnection {
         }
         return serverInfo;
     }
+    */
 
     public Charset getDatabaseCharset() {
         return databaseCharset;
@@ -407,19 +430,6 @@ public class PostgresConnection extends JdbcConnection {
         }
     }
 
-    protected static void defaultSettings(Configuration.Builder builder) {
-        // we require Postgres 9.4 as the minimum server version since that's where logical replication was first introduced
-        builder.with("assumeMinServerVersion", "9.4");
-    }
-
-    private static void validateServerVersion(Statement statement) throws SQLException {
-        DatabaseMetaData metaData = statement.getConnection().getMetaData();
-        int majorVersion = metaData.getDatabaseMajorVersion();
-        int minorVersion = metaData.getDatabaseMinorVersion();
-        if (majorVersion < 9 || (majorVersion == 9 && minorVersion < 4)) {
-            throw new SQLException("Cannot connect to a version of Postgres lower than 9.4");
-        }
-    }
 
     @Override
     protected int resolveNativeType(String typeName) {
@@ -463,7 +473,7 @@ public class PostgresConnection extends JdbcConnection {
 
             // Lookup the column type from the TypeRegistry
             // For all types, we need to set the Native and Jdbc types by using the root-type
-            final PostgresType nativeType = getTypeRegistry().get(column.typeName());
+            final HanaType nativeType = getTypeRegistry().get(column.typeName());
             column.nativeType(nativeType.getRootType().getOid());
             column.jdbcType(nativeType.getRootType().getJdbcId());
 

@@ -7,7 +7,7 @@ package io.debezium.connector.hana.snapshot;
 
 import java.util.Optional;
 
-import io.debezium.connector.hana.PostgresConnectorConfig;
+import io.debezium.connector.hana.HanaConnectorConfig;
 import io.debezium.connector.hana.spi.OffsetState;
 import io.debezium.connector.hana.spi.SlotState;
 import io.debezium.connector.hana.spi.Snapshotter;
@@ -16,7 +16,7 @@ import io.debezium.relational.TableId;
 public abstract class QueryingSnapshotter implements Snapshotter {
 
     @Override
-    public void init(PostgresConnectorConfig config, OffsetState sourceInfo, SlotState slotState) {
+    public void init(HanaConnectorConfig config, OffsetState sourceInfo, SlotState slotState) {
     }
 
     @Override

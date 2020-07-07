@@ -33,8 +33,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.debezium.config.Configuration;
-import io.debezium.connector.hana.PostgresConnectorConfig;
-import io.debezium.connector.hana.PostgresSchema;
+import io.debezium.connector.hana.HanaConnectorConfig;
+import io.debezium.connector.hana.HanaSchema;
 import io.debezium.connector.hana.TypeRegistry;
 import io.debezium.connector.hana.spi.SlotCreationResult;
 import io.debezium.jdbc.JdbcConnection;
@@ -54,7 +54,7 @@ public class PostgresReplicationConnection extends JdbcConnection implements Rep
 
     private final String slotName;
     private final String publicationName;
-    private final PostgresConnectorConfig.LogicalDecoder plugin;
+    private final HanaConnectorConfig.LogicalDecoder plugin;
     private final boolean dropSlotOnClose;
     private final boolean exportSnapshot;
     private final Configuration originalConfig;
@@ -86,14 +86,14 @@ public class PostgresReplicationConnection extends JdbcConnection implements Rep
     private PostgresReplicationConnection(Configuration config,
                                           String slotName,
                                           String publicationName,
-                                          PostgresConnectorConfig.LogicalDecoder plugin,
+                                          HanaConnectorConfig.LogicalDecoder plugin,
                                           boolean dropSlotOnClose,
                                           boolean exportSnapshot,
                                           Duration statusUpdateInterval,
                                           TypeRegistry typeRegistry,
                                           Properties streamParams,
-                                          PostgresSchema schema) {
-        super(config, PostgresConnection.FACTORY, null, PostgresReplicationConnection::defaultSettings);
+                                          HanaSchema schema) {
+        super(config, HanaConnection.FACTORY, null, PostgresReplicationConnection::defaultSettings);
 
         this.originalConfig = config;
         this.slotName = slotName;
@@ -110,13 +110,13 @@ public class PostgresReplicationConnection extends JdbcConnection implements Rep
     }
 
     private ServerInfo.ReplicationSlot getSlotInfo() throws SQLException, InterruptedException {
-        try (PostgresConnection connection = new PostgresConnection(originalConfig)) {
+        try (HanaConnection connection = new HanaConnection(originalConfig)) {
             return connection.readReplicationSlotInfo(slotName, plugin.getPostgresPluginName());
         }
     }
 
     protected void initPublication() {
-        if (PostgresConnectorConfig.LogicalDecoder.PGOUTPUT.equals(plugin)) {
+        if (HanaConnectorConfig.LogicalDecoder.PGOUTPUT.equals(plugin)) {
             LOGGER.info("Initializing PgOutput logical decoder publication");
             try {
                 String selectPublication = String.format("SELECT COUNT(1) FROM pg_publication WHERE pubname = '%s'", publicationName);
@@ -527,7 +527,7 @@ public class PostgresReplicationConnection extends JdbcConnection implements Rep
         }
         if (dropSlotOnClose) {
             // we're dropping the replication slot via a regular - i.e. not a replication - connection
-            try (PostgresConnection connection = new PostgresConnection(originalConfig)) {
+            try (HanaConnection connection = new HanaConnection(originalConfig)) {
                 connection.dropReplicationSlot(slotName);
             }
             catch (Throwable e) {
@@ -538,7 +538,7 @@ public class PostgresReplicationConnection extends JdbcConnection implements Rep
 
     protected static void defaultSettings(Configuration.Builder builder) {
         // first copy the parent's default settings...
-        PostgresConnection.defaultSettings(builder);
+        HanaConnection.defaultSettings(builder);
         // then set some additional replication specific settings
         builder.with("replication", "database")
                 .with("preferQueryMode", "simple"); // replication protocol only supports simple query mode
@@ -549,12 +549,12 @@ public class PostgresReplicationConnection extends JdbcConnection implements Rep
         private final Configuration config;
         private String slotName = DEFAULT_SLOT_NAME;
         private String publicationName = DEFAULT_PUBLICATION_NAME;
-        private PostgresConnectorConfig.LogicalDecoder plugin = PostgresConnectorConfig.LogicalDecoder.DECODERBUFS;
+        private HanaConnectorConfig.LogicalDecoder plugin = HanaConnectorConfig.LogicalDecoder.DECODERBUFS;
         private boolean dropSlotOnClose = DEFAULT_DROP_SLOT_ON_CLOSE;
         private Duration statusUpdateIntervalVal;
         private boolean exportSnapshot = DEFAULT_EXPORT_SNAPSHOT;
         private TypeRegistry typeRegistry;
-        private PostgresSchema schema;
+        private HanaSchema schema;
         private Properties slotStreamParams = new Properties();
 
         protected ReplicationConnectionBuilder(Configuration config) {
@@ -577,7 +577,7 @@ public class PostgresReplicationConnection extends JdbcConnection implements Rep
         }
 
         @Override
-        public ReplicationConnectionBuilder withPlugin(final PostgresConnectorConfig.LogicalDecoder plugin) {
+        public ReplicationConnectionBuilder withPlugin(final HanaConnectorConfig.LogicalDecoder plugin) {
             assert plugin != null;
             this.plugin = plugin;
             return this;
@@ -633,7 +633,7 @@ public class PostgresReplicationConnection extends JdbcConnection implements Rep
         }
 
         @Override
-        public Builder withSchema(PostgresSchema schema) {
+        public Builder withSchema(HanaSchema schema) {
             this.schema = schema;
             return this;
         }

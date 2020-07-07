@@ -10,7 +10,7 @@ import org.apache.kafka.connect.source.SourceRecord;
 /**
  * Container for {@link SourceRecord}s and associated metadata
  *
- * @author Jiri Pechanec
+ * @author Joao Tavares
  *
  */
 public class ChangeEvent {

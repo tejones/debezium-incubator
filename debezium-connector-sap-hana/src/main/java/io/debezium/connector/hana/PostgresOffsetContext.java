@@ -18,7 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.debezium.connector.SnapshotRecord;
-import io.debezium.connector.hana.connection.PostgresConnection;
+import io.debezium.connector.hana.connection.HanaConnection;
 import io.debezium.connector.hana.connection.ReplicationConnection;
 import io.debezium.connector.hana.spi.OffsetState;
 import io.debezium.pipeline.spi.OffsetContext;
@@ -41,7 +41,7 @@ public class PostgresOffsetContext implements OffsetContext {
     private Long lastCompletelyProcessedLsn;
     private final TransactionContext transactionContext;
 
-    private PostgresOffsetContext(PostgresConnectorConfig connectorConfig, Long lsn, Long lastCompletelyProcessedLsn, Long txId, Instant time, boolean snapshot,
+    private PostgresOffsetContext(HanaConnectorConfig connectorConfig, Long lsn, Long lastCompletelyProcessedLsn, Long txId, Instant time, boolean snapshot,
                                   boolean lastSnapshotRecord, TransactionContext transactionContext) {
         partition = Collections.singletonMap(SERVER_PARTITION_KEY, connectorConfig.getLogicalName());
         sourceInfo = new SourceInfo(connectorConfig);
@@ -152,9 +152,9 @@ public class PostgresOffsetContext implements OffsetContext {
 
     public static class Loader implements OffsetContext.Loader {
 
-        private final PostgresConnectorConfig connectorConfig;
+        private final HanaConnectorConfig connectorConfig;
 
-        public Loader(PostgresConnectorConfig connectorConfig) {
+        public Loader(HanaConnectorConfig connectorConfig) {
             this.connectorConfig = connectorConfig;
         }
 
@@ -190,7 +190,7 @@ public class PostgresOffsetContext implements OffsetContext {
                 + ", lastSnapshotRecord=" + lastSnapshotRecord + "]";
     }
 
-    public static PostgresOffsetContext initialContext(PostgresConnectorConfig connectorConfig, PostgresConnection jdbcConnection, Clock clock) {
+    public static PostgresOffsetContext initialContext(HanaConnectorConfig connectorConfig, HanaConnection jdbcConnection, Clock clock) {
         try {
             LOGGER.info("Creating initial offset context");
             final long lsn = jdbcConnection.currentXLogLocation();

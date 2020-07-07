@@ -12,11 +12,11 @@ import io.debezium.schema.TopicSelector;
 /**
  * Factory for this connector's {@link TopicSelector}.
  *
- * @author Horia Chiorean (hchiorea@redhat.com)
+ * @author Joao Tavares
  */
-public class PostgresTopicSelector {
+public class HanaTopicSelector {
 
-    public static TopicSelector<TableId> create(PostgresConnectorConfig connectorConfig) {
+    public static TopicSelector<TableId> create(HanaConnectorConfig connectorConfig) {
         return TopicSelector.defaultSelector(connectorConfig,
                 (id, prefix, delimiter) -> String.join(delimiter, prefix, id.schema(), id.table()));
     }

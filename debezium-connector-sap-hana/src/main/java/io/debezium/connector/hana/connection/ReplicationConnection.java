@@ -15,8 +15,8 @@ import org.postgresql.replication.PGReplicationStream;
 
 import io.debezium.annotation.NotThreadSafe;
 import io.debezium.config.Configuration;
-import io.debezium.connector.hana.PostgresConnectorConfig;
-import io.debezium.connector.hana.PostgresSchema;
+import io.debezium.connector.hana.HanaConnectorConfig;
+import io.debezium.connector.hana.HanaSchema;
 import io.debezium.connector.hana.TypeRegistry;
 import io.debezium.connector.hana.spi.SlotCreationResult;
 
@@ -140,7 +140,7 @@ public interface ReplicationConnection extends AutoCloseable {
          * @return this instance
          * @see #PROTOBUF_PLUGIN_NAME
          */
-        Builder withPlugin(final PostgresConnectorConfig.LogicalDecoder plugin);
+        Builder withPlugin(final HanaConnectorConfig.LogicalDecoder plugin);
 
         /**
          * Whether or not to drop the replication slot once the replication connection closes
@@ -167,7 +167,7 @@ public interface ReplicationConnection extends AutoCloseable {
          * @param schema the schema, must not be null
          * @return this instance
          */
-        Builder withSchema(PostgresSchema schema);
+        Builder withSchema(HanaSchema schema);
 
         /**
          * Optional parameters to pass to the logical decoder when the stream starts.

@@ -21,7 +21,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import io.debezium.connector.hana.PostgresConnectorConfig.SnapshotMode;
+import io.debezium.connector.hana.HanaConnectorConfig.SnapshotMode;
 
 /**
  * @author Chris Cranford
@@ -49,8 +49,8 @@ public class PostgresMetricsIT extends AbstractRecordsProducerTest {
         // start connector
         start(PostgresConnector.class,
                 TestHelper.defaultConfig()
-                        .with(PostgresConnectorConfig.SNAPSHOT_MODE, SnapshotMode.ALWAYS)
-                        .with(PostgresConnectorConfig.DROP_SLOT_ON_STOP, Boolean.TRUE)
+                        .with(HanaConnectorConfig.SNAPSHOT_MODE, SnapshotMode.ALWAYS)
+                        .with(HanaConnectorConfig.DROP_SLOT_ON_STOP, Boolean.TRUE)
                         .build());
 
         assertConnectorIsRunning();
@@ -90,8 +90,8 @@ public class PostgresMetricsIT extends AbstractRecordsProducerTest {
         // start connector
         start(PostgresConnector.class,
                 TestHelper.defaultConfig()
-                        .with(PostgresConnectorConfig.SNAPSHOT_MODE, SnapshotMode.INITIAL_ONLY)
-                        .with(PostgresConnectorConfig.DROP_SLOT_ON_STOP, Boolean.TRUE)
+                        .with(HanaConnectorConfig.SNAPSHOT_MODE, SnapshotMode.INITIAL_ONLY)
+                        .with(HanaConnectorConfig.DROP_SLOT_ON_STOP, Boolean.TRUE)
                         .build());
 
         assertSnapshotMetrics();
@@ -105,8 +105,8 @@ public class PostgresMetricsIT extends AbstractRecordsProducerTest {
         // start connector
         start(PostgresConnector.class,
                 TestHelper.defaultConfig()
-                        .with(PostgresConnectorConfig.SNAPSHOT_MODE, SnapshotMode.ALWAYS)
-                        .with(PostgresConnectorConfig.DROP_SLOT_ON_STOP, Boolean.TRUE)
+                        .with(HanaConnectorConfig.SNAPSHOT_MODE, SnapshotMode.ALWAYS)
+                        .with(HanaConnectorConfig.DROP_SLOT_ON_STOP, Boolean.TRUE)
                         .build());
 
         assertSnapshotMetrics();
@@ -123,8 +123,8 @@ public class PostgresMetricsIT extends AbstractRecordsProducerTest {
         // start connector
         start(PostgresConnector.class,
                 TestHelper.defaultConfig()
-                        .with(PostgresConnectorConfig.SNAPSHOT_MODE, SnapshotMode.NEVER)
-                        .with(PostgresConnectorConfig.DROP_SLOT_ON_STOP, Boolean.TRUE)
+                        .with(HanaConnectorConfig.SNAPSHOT_MODE, SnapshotMode.NEVER)
+                        .with(HanaConnectorConfig.DROP_SLOT_ON_STOP, Boolean.TRUE)
                         .build());
 
         assertSnapshotNotExecutedMetrics();

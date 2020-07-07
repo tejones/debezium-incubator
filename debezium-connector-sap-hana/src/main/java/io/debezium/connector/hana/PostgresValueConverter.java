@@ -44,8 +44,8 @@ import org.postgresql.util.PGobject;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 
-import io.debezium.connector.hana.PostgresConnectorConfig.HStoreHandlingMode;
-import io.debezium.connector.hana.PostgresConnectorConfig.IntervalHandlingMode;
+import io.debezium.connector.hana.HanaConnectorConfig.HStoreHandlingMode;
+import io.debezium.connector.hana.HanaConnectorConfig.IntervalHandlingMode;
 import io.debezium.connector.hana.data.Ltree;
 import io.debezium.connector.hana.proto.PgProto;
 import io.debezium.data.Bits;
@@ -301,7 +301,7 @@ public class PostgresValueConverter extends JdbcValueConverters {
     }
 
     private SchemaBuilder hstoreSchema() {
-        if (hStoreMode == PostgresConnectorConfig.HStoreHandlingMode.JSON) {
+        if (hStoreMode == HanaConnectorConfig.HStoreHandlingMode.JSON) {
             return Json.builder();
         }
         else {

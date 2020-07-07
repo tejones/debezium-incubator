@@ -6,7 +6,7 @@
 package io.debezium.connector.hana.connection;
 
 import io.debezium.config.Configuration;
-import io.debezium.connector.hana.PostgresSchema;
+import io.debezium.connector.hana.HanaSchema;
 
 /**
  * Configuration parameter object for a {@link MessageDecoder}
@@ -16,10 +16,10 @@ import io.debezium.connector.hana.PostgresSchema;
 public class MessageDecoderConfig {
 
     private final Configuration configuration;
-    private final PostgresSchema schema;
+    private final HanaSchema schema;
     private final String publicationName;
 
-    public MessageDecoderConfig(Configuration configuration, PostgresSchema schema, String publicationName) {
+    public MessageDecoderConfig(Configuration configuration, HanaSchema schema, String publicationName) {
         this.configuration = configuration;
         this.schema = schema;
         this.publicationName = publicationName;
@@ -29,7 +29,7 @@ public class MessageDecoderConfig {
         return configuration;
     }
 
-    public PostgresSchema getSchema() {
+    public HanaSchema getSchema() {
         return schema;
     }
 

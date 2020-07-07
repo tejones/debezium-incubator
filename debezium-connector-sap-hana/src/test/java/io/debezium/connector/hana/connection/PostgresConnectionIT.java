@@ -30,7 +30,7 @@ import io.debezium.relational.TableId;
 import io.debezium.util.Testing;
 
 /**
- * Integration test for {@link PostgresConnection}
+ * Integration test for {@link HanaConnection}
  *
  * @author Joao Tavares (jtavares@redhat.com)
  */
@@ -43,12 +43,12 @@ public class PostgresConnectionIT {
 
     @Test
     public void shouldReportValidTxId() throws SQLException {
-        try (PostgresConnection connection = TestHelper.create()) {
+        try (HanaConnection connection = TestHelper.create()) {
             connection.connect();
             assertTrue(connection.currentTransactionId() > 0);
         }
 
-        try (PostgresConnection connection = TestHelper.create()) {
+        try (HanaConnection connection = TestHelper.create()) {
             connection.connect();
             connection.setAutoCommit(false);
             Long txId = connection.currentTransactionId();
@@ -60,7 +60,7 @@ public class PostgresConnectionIT {
 
     @Test
     public void shouldReportValidXLogPos() throws SQLException {
-        try (PostgresConnection connection = TestHelper.create()) {
+        try (HanaConnection connection = TestHelper.create()) {
             connection.connect();
             assertTrue(connection.currentXLogLocation() > 0);
         }
@@ -68,7 +68,7 @@ public class PostgresConnectionIT {
 
     @Test
     public void shouldReadServerInformation() throws Exception {
-        try (PostgresConnection connection = TestHelper.create()) {
+        try (HanaConnection connection = TestHelper.create()) {
             ServerInfo serverInfo = connection.serverInfo();
             assertNotNull(serverInfo);
             assertNotNull(serverInfo.server());
@@ -82,7 +82,7 @@ public class PostgresConnectionIT {
 
     @Test
     public void shouldReadReplicationSlotInfo() throws Exception {
-        try (PostgresConnection connection = TestHelper.create()) {
+        try (HanaConnection connection = TestHelper.create()) {
             ServerInfo.ReplicationSlot slotInfo = connection.readReplicationSlotInfo("test", "test");
             assertEquals(ServerInfo.ReplicationSlot.INVALID, slotInfo);
         }
@@ -94,14 +94,14 @@ public class PostgresConnectionIT {
                 "CREATE SCHEMA public;" +
                 "CREATE TABLE test(pk serial, PRIMARY KEY (pk));";
         TestHelper.execute(statement);
-        try (PostgresConnection connection = TestHelper.create()) {
+        try (HanaConnection connection = TestHelper.create()) {
             assertEquals(ServerInfo.ReplicaIdentity.DEFAULT, connection.readReplicaIdentityInfo(TableId.parse("public.test")));
         }
     }
 
     @Test
     public void shouldDropReplicationSlot() throws Exception {
-        try (PostgresConnection connection = TestHelper.create()) {
+        try (HanaConnection connection = TestHelper.create()) {
             // try to drop a non existent slot
             assertFalse(connection.dropReplicationSlot("test"));
         }
@@ -111,7 +111,7 @@ public class PostgresConnectionIT {
             assertTrue(connection.isConnected());
         }
         // drop the slot from the previous connection
-        try (PostgresConnection connection = TestHelper.create()) {
+        try (HanaConnection connection = TestHelper.create()) {
             // try to drop the previous slot
             assertTrue(connection.dropReplicationSlot("test"));
         }
@@ -132,7 +132,7 @@ public class PostgresConnectionIT {
             // simulate ungraceful shutdown by closing underlying database connection
             pgConnection.close();
 
-            try (PostgresConnection connection = TestHelper.create()) {
+            try (HanaConnection connection = TestHelper.create()) {
                 assertFalse("postgres did not drop replication slot", connection.dropReplicationSlot("test"));
             }
         }
@@ -150,7 +150,7 @@ public class PostgresConnectionIT {
         Testing.Print.enable();
         // drop the slot from the previous connection
         final String slotName = "block";
-        try (PostgresConnection connection = TestHelper.create()) {
+        try (HanaConnection connection = TestHelper.create()) {
             // try to drop the previous slot
             connection.dropReplicationSlot(slotName);
             connection.execute(
@@ -159,7 +159,7 @@ public class PostgresConnectionIT {
                     "CREATE TABLE test(pk serial, PRIMARY KEY (pk))");
         }
 
-        try (PostgresConnection blockingConnection = TestHelper.create("blocker")) {
+        try (HanaConnection blockingConnection = TestHelper.create("blocker")) {
             // Create an unfinished TX
             blockingConnection.connection().setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
             blockingConnection.connection().setAutoCommit(false);
@@ -204,7 +204,7 @@ public class PostgresConnectionIT {
             f1.get();
             f2.get();
             // drop the slot from the previous connection
-            try (PostgresConnection connection = TestHelper.create()) {
+            try (HanaConnection connection = TestHelper.create()) {
                 // try to drop the previous slot
                 assertTrue(connection.dropReplicationSlot(slotName));
             }
@@ -218,7 +218,7 @@ public class PostgresConnectionIT {
             replConnection.initConnection();
             assertTrue(replConnection.isConnected());
         }
-        try (PostgresConnection conn = buildPG95PGConn("pg95")) {
+        try (HanaConnection conn = buildPG95PGConn("pg95")) {
             ServerInfo.ReplicationSlot slotInfo = conn.readReplicationSlotInfo(slotName, TestHelper.decoderPlugin().getPostgresPluginName());
             assertNotNull(slotInfo);
             assertNotEquals(ServerInfo.ReplicationSlot.INVALID, slotInfo);
@@ -228,8 +228,8 @@ public class PostgresConnectionIT {
     }
 
     // "fake" a pg95 response by not returning confirmed_flushed_lsn
-    private PostgresConnection buildPG95PGConn(String name) {
-        return new PostgresConnection(TestHelper.defaultJdbcConfig().edit().with("ApplicationName", name).build()) {
+    private HanaConnection buildPG95PGConn(String name) {
+        return new HanaConnection(TestHelper.defaultJdbcConfig().edit().with("ApplicationName", name).build()) {
             @Override
             protected ServerInfo.ReplicationSlot queryForSlot(String slotName, String database, String pluginName,
                                                               ResultSetMapper<ServerInfo.ReplicationSlot> map)

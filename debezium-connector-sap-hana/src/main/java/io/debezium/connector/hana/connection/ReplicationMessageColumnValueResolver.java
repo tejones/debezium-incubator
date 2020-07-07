@@ -10,7 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.debezium.connector.hana.PostgresStreamingChangeEventSource.PgConnectionSupplier;
-import io.debezium.connector.hana.PostgresType;
+import io.debezium.connector.hana.HanaType;
 import io.debezium.connector.hana.TypeRegistry;
 import io.debezium.connector.hana.connection.ReplicationMessage.ColumnValue;
 
@@ -33,7 +33,7 @@ public class ReplicationMessageColumnValueResolver {
      * @param typeRegistry the postgres type registry
      * @return
      */
-    public static Object resolveValue(String columnName, PostgresType type, String fullType, ColumnValue value, final PgConnectionSupplier connection,
+    public static Object resolveValue(String columnName, HanaType type, String fullType, ColumnValue value, final PgConnectionSupplier connection,
                                       boolean includeUnknownDatatypes, TypeRegistry typeRegistry) {
         if (value.isNull()) {
             // nulls are null

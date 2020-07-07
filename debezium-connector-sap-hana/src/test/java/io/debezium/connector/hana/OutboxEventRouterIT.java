@@ -31,7 +31,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.debezium.config.Configuration;
-import io.debezium.connector.hana.PostgresConnectorConfig.SnapshotMode;
+import io.debezium.connector.hana.HanaConnectorConfig.SnapshotMode;
 import io.debezium.data.Json;
 import io.debezium.data.Uuid;
 import io.debezium.doc.FixFor;
@@ -499,9 +499,9 @@ public class OutboxEventRouterIT extends AbstractConnectorTest {
 
     private static Configuration.Builder getConfigurationBuilder(SnapshotMode snapshotMode) {
         return TestHelper.defaultConfig()
-                .with(PostgresConnectorConfig.SNAPSHOT_MODE, snapshotMode.getValue())
-                .with(PostgresConnectorConfig.DROP_SLOT_ON_STOP, Boolean.TRUE)
-                .with(PostgresConnectorConfig.SCHEMA_WHITELIST, "outboxsmtit")
-                .with(PostgresConnectorConfig.TABLE_WHITELIST, "outboxsmtit\\.outbox");
+                .with(HanaConnectorConfig.SNAPSHOT_MODE, snapshotMode.getValue())
+                .with(HanaConnectorConfig.DROP_SLOT_ON_STOP, Boolean.TRUE)
+                .with(HanaConnectorConfig.SCHEMA_WHITELIST, "outboxsmtit")
+                .with(HanaConnectorConfig.TABLE_WHITELIST, "outboxsmtit\\.outbox");
     }
 }

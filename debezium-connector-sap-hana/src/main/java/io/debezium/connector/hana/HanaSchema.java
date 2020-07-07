@@ -21,7 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.debezium.annotation.NotThreadSafe;
-import io.debezium.connector.hana.connection.PostgresConnection;
+import io.debezium.connector.hana.connection.HanaConnection;
 import io.debezium.connector.hana.connection.ServerInfo;
 import io.debezium.jdbc.JdbcConnection;
 import io.debezium.relational.RelationalDatabaseSchema;
@@ -33,18 +33,18 @@ import io.debezium.schema.TopicSelector;
 import io.debezium.util.SchemaNameAdjuster;
 
 /**
- * Component that records the schema information for the {@link PostgresConnector}. The schema information contains
- * the {@link Tables table definitions} and the Kafka Connect {@link #schemaFor(TableId) Schema}s for each table, where the
- * {@link Schema} excludes any columns that have been {@link PostgresConnectorConfig#COLUMN_BLACKLIST specified} in the
+ * Component that records the schema information for the {@link HanaConnector}. The schema information contains
+ * the {@link Tables table definitions} and the Kafka Connect {@link #schemaFor(TableId) Schema} for each table, where the
+ * {@link Schema} excludes any columns that have been {@link HanaConnectorConfig#COLUMN_BLACKLIST specified} in the
  * configuration.
  *
- * @author Horia Chiorean
+ * @author Joao Tavares
  */
 @NotThreadSafe
-public class PostgresSchema extends RelationalDatabaseSchema {
+public class HanaSchema extends RelationalDatabaseSchema {
 
     protected final static String PUBLIC_SCHEMA_NAME = "public";
-    private final static Logger LOGGER = LoggerFactory.getLogger(PostgresSchema.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger(HanaSchema.class);
 
     private final TypeRegistry typeRegistry;
 
@@ -53,11 +53,11 @@ public class PostgresSchema extends RelationalDatabaseSchema {
     private final boolean readToastableColumns;
 
     /**
-     * Create a schema component given the supplied {@link PostgresConnectorConfig Postgres connector configuration}.
+     * Create a schema component given the supplied {@link HanaConnectorConfig Hana connector configuration}.
      *
      * @param config the connector configuration, which is presumed to be valid
      */
-    protected PostgresSchema(PostgresConnectorConfig config, TypeRegistry typeRegistry, Charset databaseCharset,
+    protected HanaSchema(HanaConnectorConfig config, TypeRegistry typeRegistry, Charset databaseCharset,
                              TopicSelector<TableId> topicSelector) {
         super(config, topicSelector, new Filters(config).tableFilter(),
                 new Filters(config).columnFilter(), getTableSchemaBuilder(config, typeRegistry, databaseCharset), false,
@@ -68,8 +68,10 @@ public class PostgresSchema extends RelationalDatabaseSchema {
         this.relationIdToTableId = new HashMap<>();
         this.readToastableColumns = config.skipRefreshSchemaOnMissingToastableData();
     }
-
-    private static TableSchemaBuilder getTableSchemaBuilder(PostgresConnectorConfig config, TypeRegistry typeRegistry, Charset databaseCharset) {
+    
+    
+    /* Redo for Hana
+    private static TableSchemaBuilder getTableSchemaBuilder(HanaConnectorConfig config, TypeRegistry typeRegistry, Charset databaseCharset) {
         PostgresValueConverter valueConverter = new PostgresValueConverter(
                 databaseCharset,
                 config.getDecimalMode(),
@@ -85,6 +87,7 @@ public class PostgresSchema extends RelationalDatabaseSchema {
         return new TableSchemaBuilder(valueConverter, SchemaNameAdjuster.create(LOGGER), config.customConverterRegistry(), config.getSourceInfoStructMaker().schema(),
                 config.getSanitizeFieldNames());
     }
+    */
 
     /**
      * Initializes the content for this schema by reading all the database information from the supplied connection.
@@ -94,7 +97,7 @@ public class PostgresSchema extends RelationalDatabaseSchema {
      * @return this object so methods can be chained together; never null
      * @throws SQLException if there is a problem obtaining the schema from the database server
      */
-    protected PostgresSchema refresh(PostgresConnection connection, boolean printReplicaIdentityInfo) throws SQLException {
+    protected HanaSchema refresh(HanaConnection connection, boolean printReplicaIdentityInfo) throws SQLException {
         // read all the information from the DB
         connection.readSchema(tables(), null, null, getTableFilter(), null, true);
         if (printReplicaIdentityInfo) {
@@ -108,8 +111,9 @@ public class PostgresSchema extends RelationalDatabaseSchema {
         }
         return this;
     }
-
-    private void printReplicaIdentityInfo(PostgresConnection connection, TableId tableId) {
+    
+    /* Necessary for Hana? Don't think so
+    private void printReplicaIdentityInfo(HanaConnection connection, TableId tableId) {
         try {
             ServerInfo.ReplicaIdentity replicaIdentity = connection.readReplicaIdentityInfo(tableId);
             LOGGER.info("REPLICA IDENTITY for '{}' is '{}'; {}", tableId, replicaIdentity, replicaIdentity.description());
@@ -118,6 +122,7 @@ public class PostgresSchema extends RelationalDatabaseSchema {
             LOGGER.warn("Cannot determine REPLICA IDENTITY info for '{}'", tableId);
         }
     }
+    */
 
     /**
      * Refreshes this schema's content for a particular table
@@ -127,7 +132,7 @@ public class PostgresSchema extends RelationalDatabaseSchema {
      * @param refreshToastableColumns refreshes the cache of toastable columns for `tableId`, if {@code true}
      * @throws SQLException if there is a problem refreshing the schema from the database server
      */
-    protected void refresh(PostgresConnection connection, TableId tableId, boolean refreshToastableColumns) throws SQLException {
+    protected void refresh(HanaConnection connection, TableId tableId, boolean refreshToastableColumns) throws SQLException {
         Tables temp = new Tables();
         connection.readSchema(temp, null, null, tableId::equals, null, true);
 
@@ -181,8 +186,9 @@ public class PostgresSchema extends RelationalDatabaseSchema {
 
         buildAndRegisterSchema(table);
     }
-
-    private void refreshToastableColumnsMap(PostgresConnection connection, TableId tableId) {
+    
+    /* Redo for Hana
+    private void refreshToastableColumnsMap(HanaConnection connection, TableId tableId) {
         // This method populates the list of 'toastable' columns for `tableId`.
         // A toastable column is one that has storage strategy 'x' (inline-compressible + secondary storage enabled),
         // 'e' (secondary storage enabled), or 'm' (inline-compressible).
@@ -232,6 +238,8 @@ public class PostgresSchema extends RelationalDatabaseSchema {
 
         tableIdToToastableColumns.put(tableId, Collections.unmodifiableList(toastableColumns));
     }
+    
+    */
 
     protected static TableId parse(String table) {
         TableId tableId = TableId.parse(table, false);
@@ -252,7 +260,7 @@ public class PostgresSchema extends RelationalDatabaseSchema {
     /**
      * Applies schema changes for the specified table.
      *
-     * @param relationId the postgres relation unique identifier for the table
+     * @param relationId the hana relation unique identifier for the table
      * @param table externally constructed table, typically from the decoder; must not be null
      */
     public void applySchemaChangesForTable(int relationId, Table table) {
@@ -289,7 +297,7 @@ public class PostgresSchema extends RelationalDatabaseSchema {
 
     @Override
     public boolean tableInformationComplete() {
-        // PostgreSQL does not support HistorizedDatabaseSchema - so no tables are recovered
+        // Hana does not support HistorizedDatabaseSchema - so no tables are recovered
         return false;
     }
 }

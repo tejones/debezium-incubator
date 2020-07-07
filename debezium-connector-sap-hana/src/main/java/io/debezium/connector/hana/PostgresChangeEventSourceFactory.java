@@ -5,7 +5,7 @@
  */
 package io.debezium.connector.hana;
 
-import io.debezium.connector.hana.connection.PostgresConnection;
+import io.debezium.connector.hana.connection.HanaConnection;
 import io.debezium.connector.hana.connection.ReplicationConnection;
 import io.debezium.connector.hana.spi.SlotCreationResult;
 import io.debezium.connector.hana.spi.Snapshotter;
@@ -21,19 +21,19 @@ import io.debezium.util.Clock;
 
 public class PostgresChangeEventSourceFactory implements ChangeEventSourceFactory {
 
-    private final PostgresConnectorConfig configuration;
-    private final PostgresConnection jdbcConnection;
+    private final HanaConnectorConfig configuration;
+    private final HanaConnection jdbcConnection;
     private final ErrorHandler errorHandler;
     private final EventDispatcher<TableId> dispatcher;
     private final Clock clock;
-    private final PostgresSchema schema;
+    private final HanaSchema schema;
     private final PostgresTaskContext taskContext;
     private final Snapshotter snapshotter;
     private final ReplicationConnection replicationConnection;
     private final SlotCreationResult slotCreatedInfo;
 
-    public PostgresChangeEventSourceFactory(PostgresConnectorConfig configuration, Snapshotter snapshotter, PostgresConnection jdbcConnection,
-                                            ErrorHandler errorHandler, EventDispatcher<TableId> dispatcher, Clock clock, PostgresSchema schema,
+    public PostgresChangeEventSourceFactory(HanaConnectorConfig configuration, Snapshotter snapshotter, HanaConnection jdbcConnection,
+                                            ErrorHandler errorHandler, EventDispatcher<TableId> dispatcher, Clock clock, HanaSchema schema,
                                             PostgresTaskContext taskContext,
                                             ReplicationConnection replicationConnection, SlotCreationResult slotCreatedInfo) {
         this.configuration = configuration;

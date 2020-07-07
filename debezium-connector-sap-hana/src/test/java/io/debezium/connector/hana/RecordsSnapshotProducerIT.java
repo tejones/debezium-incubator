@@ -37,7 +37,7 @@ import org.junit.Test;
 import org.junit.rules.TestRule;
 
 import io.debezium.config.Configuration;
-import io.debezium.connector.hana.PostgresConnectorConfig.SnapshotMode;
+import io.debezium.connector.hana.HanaConnectorConfig.SnapshotMode;
 import io.debezium.connector.hana.junit.SkipTestDependingOnDatabaseVersionRule;
 import io.debezium.connector.hana.junit.SkipWhenDatabaseVersionLessThan;
 import io.debezium.data.Bits;
@@ -124,7 +124,7 @@ public class RecordsSnapshotProducerIT extends AbstractRecordsProducerTest {
 
         // then start the producer and validate all records are there
         buildNoStreamProducer(TestHelper.defaultConfig()
-                .with(PostgresConnectorConfig.INCLUDE_UNKNOWN_DATATYPES, true)
+                .with(HanaConnectorConfig.INCLUDE_UNKNOWN_DATATYPES, true)
                 .with("converters", "first")
                 .with("first.type", CustomDatatypeConverter.class.getName())
                 .with("first.schema.name", "io.debezium.postgresql.type.Isbn"));
@@ -162,7 +162,7 @@ public class RecordsSnapshotProducerIT extends AbstractRecordsProducerTest {
 
         // then start the producer and validate all records are there
         buildNoStreamProducer(TestHelper.defaultConfig()
-                .with(PostgresConnectorConfig.INCLUDE_UNKNOWN_DATATYPES, true));
+                .with(HanaConnectorConfig.INCLUDE_UNKNOWN_DATATYPES, true));
 
         final TestConsumer consumer = testConsumer(1, "public");
         consumer.await(TestHelper.waitTimeForRecords() * 30, TimeUnit.SECONDS);
@@ -295,8 +295,8 @@ public class RecordsSnapshotProducerIT extends AbstractRecordsProducerTest {
         TestHelper.execute("CREATE TABLE t1 (pk SERIAL, aa integer, PRIMARY KEY(pk)); INSERT INTO t1 VALUES (default, 11)");
 
         buildWithStreamProducer(TestHelper.defaultConfig()
-                .with(PostgresConnectorConfig.SNAPSHOT_MODE, PostgresConnectorConfig.SnapshotMode.INITIAL)
-                .with(PostgresConnectorConfig.INCLUDE_SCHEMA_CHANGES, true)
+                .with(HanaConnectorConfig.SNAPSHOT_MODE, HanaConnectorConfig.SnapshotMode.INITIAL)
+                .with(HanaConnectorConfig.INCLUDE_SCHEMA_CHANGES, true)
                 .with(Heartbeat.HEARTBEAT_INTERVAL, 300_000));
 
         TestConsumer consumer = testConsumer(2);
@@ -329,7 +329,7 @@ public class RecordsSnapshotProducerIT extends AbstractRecordsProducerTest {
 
         // then start the producer and validate all records are there
         buildNoStreamProducer(TestHelper.defaultConfig()
-                .with(PostgresConnectorConfig.TIME_PRECISION_MODE, TemporalPrecisionMode.ADAPTIVE_TIME_MICROSECONDS));
+                .with(HanaConnectorConfig.TIME_PRECISION_MODE, TemporalPrecisionMode.ADAPTIVE_TIME_MICROSECONDS));
 
         TestConsumer consumer = testConsumer(ALL_STMTS.size(), "public", "Quoted__");
         consumer.await(TestHelper.waitTimeForRecords() * 30, TimeUnit.SECONDS);
@@ -357,7 +357,7 @@ public class RecordsSnapshotProducerIT extends AbstractRecordsProducerTest {
 
         // then start the producer and validate all records are there
         buildNoStreamProducer(TestHelper.defaultConfig()
-                .with(PostgresConnectorConfig.DECIMAL_HANDLING_MODE, DecimalHandlingMode.STRING));
+                .with(HanaConnectorConfig.DECIMAL_HANDLING_MODE, DecimalHandlingMode.STRING));
 
         TestConsumer consumer = testConsumer(1, "public", "Quoted__");
         consumer.await(TestHelper.waitTimeForRecords() * 30, TimeUnit.SECONDS);
@@ -578,7 +578,7 @@ public class RecordsSnapshotProducerIT extends AbstractRecordsProducerTest {
         // insert money
         TestHelper.execute(INSERT_NEGATIVE_CASH_TYPES_STMT);
 
-        buildNoStreamProducer(TestHelper.defaultConfig().with(PostgresConnectorConfig.TABLE_WHITELIST, "public.cash_table"));
+        buildNoStreamProducer(TestHelper.defaultConfig().with(HanaConnectorConfig.TABLE_WHITELIST, "public.cash_table"));
 
         TestConsumer consumer = testConsumer(1, "public");
         consumer.await(TestHelper.waitTimeForRecords() * 30, TimeUnit.SECONDS);
@@ -596,7 +596,7 @@ public class RecordsSnapshotProducerIT extends AbstractRecordsProducerTest {
         // insert money
         TestHelper.execute(INSERT_NULL_CASH_TYPES_STMT);
 
-        buildNoStreamProducer(TestHelper.defaultConfig().with(PostgresConnectorConfig.TABLE_WHITELIST, "public.cash_table"));
+        buildNoStreamProducer(TestHelper.defaultConfig().with(HanaConnectorConfig.TABLE_WHITELIST, "public.cash_table"));
 
         TestConsumer consumer = testConsumer(1, "public");
         consumer.await(TestHelper.waitTimeForRecords() * 30, TimeUnit.SECONDS);
@@ -615,8 +615,8 @@ public class RecordsSnapshotProducerIT extends AbstractRecordsProducerTest {
         TestHelper.execute("INSERT INTO alias_table (salary, salary2, a, area) values (7.25, 8.25, 12345.123, 12345.123);");
 
         buildNoStreamProducer(TestHelper.defaultConfig()
-                .with(PostgresConnectorConfig.DECIMAL_HANDLING_MODE, DecimalHandlingMode.DOUBLE)
-                .with(PostgresConnectorConfig.INCLUDE_UNKNOWN_DATATYPES, true)
+                .with(HanaConnectorConfig.DECIMAL_HANDLING_MODE, DecimalHandlingMode.DOUBLE)
+                .with(HanaConnectorConfig.INCLUDE_UNKNOWN_DATATYPES, true)
                 .with("column.propagate.source.type", "public.alias_table.*"));
 
         final TestConsumer consumer = testConsumer(1, "public");
@@ -656,8 +656,8 @@ public class RecordsSnapshotProducerIT extends AbstractRecordsProducerTest {
         TestHelper.execute("INSERT INTO alias_table (value) values (B'101');");
 
         buildNoStreamProducer(TestHelper.defaultConfig()
-                .with(PostgresConnectorConfig.DECIMAL_HANDLING_MODE, DecimalHandlingMode.DOUBLE)
-                .with(PostgresConnectorConfig.INCLUDE_UNKNOWN_DATATYPES, true)
+                .with(HanaConnectorConfig.DECIMAL_HANDLING_MODE, DecimalHandlingMode.DOUBLE)
+                .with(HanaConnectorConfig.INCLUDE_UNKNOWN_DATATYPES, true)
                 .with("column.propagate.source.type", "public.alias_table.value"));
 
         final TestConsumer consumer = testConsumer(1, "public");
@@ -819,9 +819,9 @@ public class RecordsSnapshotProducerIT extends AbstractRecordsProducerTest {
                 ");");
 
         buildNoStreamProducer(TestHelper.defaultConfig()
-                .with(PostgresConnectorConfig.DECIMAL_HANDLING_MODE, DecimalHandlingMode.DOUBLE)
-                .with(PostgresConnectorConfig.INCLUDE_UNKNOWN_DATATYPES, true)
-                .with(PostgresConnectorConfig.TABLE_WHITELIST, "public.alias_table"));
+                .with(HanaConnectorConfig.DECIMAL_HANDLING_MODE, DecimalHandlingMode.DOUBLE)
+                .with(HanaConnectorConfig.INCLUDE_UNKNOWN_DATATYPES, true)
+                .with(HanaConnectorConfig.TABLE_WHITELIST, "public.alias_table"));
 
         final TestConsumer consumer = testConsumer(1, "public");
         consumer.await(TestHelper.waitTimeForRecords() * 30, TimeUnit.SECONDS);
@@ -838,8 +838,8 @@ public class RecordsSnapshotProducerIT extends AbstractRecordsProducerTest {
         TestHelper.execute("INSERT INTO alias_table (value) values (B'101');");
 
         buildNoStreamProducer(TestHelper.defaultConfig()
-                .with(PostgresConnectorConfig.DECIMAL_HANDLING_MODE, DecimalHandlingMode.DOUBLE)
-                .with(PostgresConnectorConfig.INCLUDE_UNKNOWN_DATATYPES, true));
+                .with(HanaConnectorConfig.DECIMAL_HANDLING_MODE, DecimalHandlingMode.DOUBLE)
+                .with(HanaConnectorConfig.INCLUDE_UNKNOWN_DATATYPES, true));
 
         final TestConsumer consumer = testConsumer(1, "public");
         consumer.await(TestHelper.waitTimeForRecords() * 30, TimeUnit.SECONDS);
@@ -860,8 +860,8 @@ public class RecordsSnapshotProducerIT extends AbstractRecordsProducerTest {
         // Specifically enable `column.propagate.source.type` here to validate later that the actual
         // type, length, and scale values are resolved correctly when paired with Enum types.
         buildNoStreamProducer(TestHelper.defaultConfig()
-                .with(PostgresConnectorConfig.INCLUDE_UNKNOWN_DATATYPES, true)
-                .with(PostgresConnectorConfig.TABLE_WHITELIST, "public.enum_table")
+                .with(HanaConnectorConfig.INCLUDE_UNKNOWN_DATATYPES, true)
+                .with(HanaConnectorConfig.TABLE_WHITELIST, "public.enum_table")
                 .with("column.propagate.source.type", "public.enum_table.value"));
 
         final TestConsumer consumer = testConsumer(1, "public");
@@ -879,18 +879,18 @@ public class RecordsSnapshotProducerIT extends AbstractRecordsProducerTest {
 
     private void buildNoStreamProducer(Configuration.Builder config) {
         start(PostgresConnector.class, config
-                .with(PostgresConnectorConfig.SNAPSHOT_MODE, SnapshotMode.INITIAL_ONLY)
-                .with(PostgresConnectorConfig.SNAPSHOT_MODE_CLASS, CustomTestSnapshot.class.getName())
-                .with(PostgresConnectorConfig.DROP_SLOT_ON_STOP, Boolean.FALSE)
+                .with(HanaConnectorConfig.SNAPSHOT_MODE, SnapshotMode.INITIAL_ONLY)
+                .with(HanaConnectorConfig.SNAPSHOT_MODE_CLASS, CustomTestSnapshot.class.getName())
+                .with(HanaConnectorConfig.DROP_SLOT_ON_STOP, Boolean.FALSE)
                 .build());
         assertConnectorIsRunning();
     }
 
     private void buildWithStreamProducer(Configuration.Builder config) {
         start(PostgresConnector.class, config
-                .with(PostgresConnectorConfig.SNAPSHOT_MODE, SnapshotMode.ALWAYS)
-                .with(PostgresConnectorConfig.SNAPSHOT_MODE_CLASS, CustomTestSnapshot.class.getName())
-                .with(PostgresConnectorConfig.DROP_SLOT_ON_STOP, Boolean.FALSE)
+                .with(HanaConnectorConfig.SNAPSHOT_MODE, SnapshotMode.ALWAYS)
+                .with(HanaConnectorConfig.SNAPSHOT_MODE_CLASS, CustomTestSnapshot.class.getName())
+                .with(HanaConnectorConfig.DROP_SLOT_ON_STOP, Boolean.FALSE)
                 .build());
         assertConnectorIsRunning();
     }

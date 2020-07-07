@@ -10,7 +10,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import io.debezium.common.annotation.Incubating;
-import io.debezium.connector.hana.PostgresConnectorConfig;
+import io.debezium.connector.hana.HanaConnectorConfig;
 import io.debezium.relational.TableId;
 
 /**
@@ -31,7 +31,7 @@ import io.debezium.relational.TableId;
 @Incubating
 public interface Snapshotter {
 
-    void init(PostgresConnectorConfig config, OffsetState sourceInfo,
+    void init(HanaConnectorConfig config, OffsetState sourceInfo,
               SlotState slotState);
 
     /**

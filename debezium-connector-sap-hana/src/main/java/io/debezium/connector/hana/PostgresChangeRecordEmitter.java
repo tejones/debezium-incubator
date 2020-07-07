@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 import org.apache.kafka.connect.errors.ConnectException;
 import org.postgresql.core.BaseConnection;
 
-import io.debezium.connector.hana.connection.PostgresConnection;
+import io.debezium.connector.hana.connection.HanaConnection;
 import io.debezium.connector.hana.connection.ReplicationMessage;
 import io.debezium.data.Envelope.Operation;
 import io.debezium.function.Predicates;
@@ -45,15 +45,15 @@ import io.debezium.util.Strings;
 public class PostgresChangeRecordEmitter extends RelationalChangeRecordEmitter {
 
     private final ReplicationMessage message;
-    private final PostgresSchema schema;
-    private final PostgresConnectorConfig connectorConfig;
-    private final PostgresConnection connection;
+    private final HanaSchema schema;
+    private final HanaConnectorConfig connectorConfig;
+    private final HanaConnection connection;
     private final TableId tableId;
     private final boolean unchangedToastColumnMarkerMissing;
     private final boolean nullToastedValuesMissingFromOld;
     private final Map<String, Object> cachedOldToastedValues = new HashMap<>();
 
-    public PostgresChangeRecordEmitter(OffsetContext offset, Clock clock, PostgresConnectorConfig connectorConfig, PostgresSchema schema, PostgresConnection connection,
+    public PostgresChangeRecordEmitter(OffsetContext offset, Clock clock, HanaConnectorConfig connectorConfig, HanaSchema schema, HanaConnection connection,
                                        ReplicationMessage message) {
         super(offset, clock);
 
@@ -62,7 +62,7 @@ public class PostgresChangeRecordEmitter extends RelationalChangeRecordEmitter {
         this.connectorConfig = connectorConfig;
         this.connection = connection;
 
-        this.tableId = PostgresSchema.parse(message.getTable());
+        this.tableId = HanaSchema.parse(message.getTable());
         this.unchangedToastColumnMarkerMissing = !connectorConfig.plugin().hasUnchangedToastColumnMarker();
         this.nullToastedValuesMissingFromOld = !connectorConfig.plugin().sendsNullToastedValuesInOld();
         Objects.requireNonNull(tableId);

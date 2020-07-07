@@ -27,8 +27,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.debezium.config.Configuration;
-import io.debezium.connector.hana.PostgresConnectorConfig.SecureConnectionMode;
-import io.debezium.connector.hana.connection.PostgresConnection;
+import io.debezium.connector.hana.HanaConnectorConfig.SecureConnectionMode;
+import io.debezium.connector.hana.connection.HanaConnection;
 import io.debezium.connector.hana.connection.ReplicationConnection;
 import io.debezium.jdbc.JdbcConfiguration;
 import io.debezium.relational.RelationalDatabaseConnectorConfig;
@@ -79,8 +79,8 @@ public final class TestHelper {
      * @throws SQLException if there is a problem obtaining a replication connection
      */
     public static ReplicationConnection createForReplication(String slotName, boolean dropOnClose) throws SQLException {
-        final PostgresConnectorConfig.LogicalDecoder plugin = decoderPlugin();
-        final PostgresConnectorConfig config = new PostgresConnectorConfig(defaultConfig().build());
+        final HanaConnectorConfig.LogicalDecoder plugin = decoderPlugin();
+        final HanaConnectorConfig config = new HanaConnectorConfig(defaultConfig().build());
         return ReplicationConnection.builder(defaultJdbcConfig())
                 .withPlugin(plugin)
                 .withSlot(slotName)
@@ -94,9 +94,9 @@ public final class TestHelper {
     /**
      * @return the decoder plugin used for testing and configured by system property
      */
-    public static PostgresConnectorConfig.LogicalDecoder decoderPlugin() {
-        final String s = System.getProperty(PostgresConnectorConfig.PLUGIN_NAME.name());
-        return (s == null || s.length() == 0) ? PostgresConnectorConfig.LogicalDecoder.DECODERBUFS : PostgresConnectorConfig.LogicalDecoder.parse(s);
+    public static HanaConnectorConfig.LogicalDecoder decoderPlugin() {
+        final String s = System.getProperty(HanaConnectorConfig.PLUGIN_NAME.name());
+        return (s == null || s.length() == 0) ? HanaConnectorConfig.LogicalDecoder.DECODERBUFS : HanaConnectorConfig.LogicalDecoder.parse(s);
     }
 
     /**
@@ -104,8 +104,8 @@ public final class TestHelper {
      *
      * @return the PostgresConnection instance; never null
      */
-    public static PostgresConnection create() {
-        return new PostgresConnection(defaultJdbcConfig());
+    public static HanaConnection create() {
+        return new HanaConnection(defaultJdbcConfig());
     }
 
     /**
@@ -115,8 +115,8 @@ public final class TestHelper {
      *
      * @return the PostgresConnection instance; never null
      */
-    public static PostgresConnection create(String appName) {
-        return new PostgresConnection(defaultJdbcConfig().edit().with("ApplicationName", appName).build());
+    public static HanaConnection create(String appName) {
+        return new HanaConnection(defaultJdbcConfig().edit().with("ApplicationName", appName).build());
     }
 
     /**
@@ -132,7 +132,7 @@ public final class TestHelper {
             }
         }
 
-        try (PostgresConnection connection = create()) {
+        try (HanaConnection connection = create()) {
             connection.setAutoCommit(false);
             connection.executeWithoutCommitting(statement);
             Connection jdbcConn = connection.connection();
@@ -156,8 +156,8 @@ public final class TestHelper {
     public static void dropAllSchemas() throws SQLException {
         String lineSeparator = System.lineSeparator();
         Set<String> schemaNames = schemaNames();
-        if (!schemaNames.contains(PostgresSchema.PUBLIC_SCHEMA_NAME)) {
-            schemaNames.add(PostgresSchema.PUBLIC_SCHEMA_NAME);
+        if (!schemaNames.contains(HanaSchema.PUBLIC_SCHEMA_NAME)) {
+            schemaNames.add(HanaSchema.PUBLIC_SCHEMA_NAME);
         }
         String dropStmts = schemaNames.stream()
                 .map(schema -> "\"" + schema.replaceAll("\"", "\"\"") + "\"")
@@ -173,25 +173,25 @@ public final class TestHelper {
     }
 
     public static TypeRegistry getTypeRegistry() {
-        try (final PostgresConnection connection = new PostgresConnection(defaultJdbcConfig())) {
+        try (final HanaConnection connection = new HanaConnection(defaultJdbcConfig())) {
             return connection.getTypeRegistry();
         }
     }
 
-    public static PostgresSchema getSchema(PostgresConnectorConfig config) {
+    public static HanaSchema getSchema(HanaConnectorConfig config) {
         return getSchema(config, TestHelper.getTypeRegistry());
     }
 
-    public static PostgresSchema getSchema(PostgresConnectorConfig config, TypeRegistry typeRegistry) {
-        return new PostgresSchema(
+    public static HanaSchema getSchema(HanaConnectorConfig config, TypeRegistry typeRegistry) {
+        return new HanaSchema(
                 config,
                 typeRegistry,
                 Charset.forName("UTF-8"),
-                PostgresTopicSelector.create(config));
+                HanaTopicSelector.create(config));
     }
 
     protected static Set<String> schemaNames() throws SQLException {
-        try (PostgresConnection connection = create()) {
+        try (HanaConnection connection = create()) {
             return connection.readAllSchemaNames(Filters.IS_SYSTEM_SCHEMA.negate());
         }
     }
@@ -209,15 +209,15 @@ public final class TestHelper {
     protected static Configuration.Builder defaultConfig() {
         JdbcConfiguration jdbcConfiguration = defaultJdbcConfig();
         Configuration.Builder builder = Configuration.create();
-        jdbcConfiguration.forEach((field, value) -> builder.with(PostgresConnectorConfig.DATABASE_CONFIG_PREFIX + field, value));
+        jdbcConfiguration.forEach((field, value) -> builder.with(HanaConnectorConfig.DATABASE_CONFIG_PREFIX + field, value));
         builder.with(RelationalDatabaseConnectorConfig.SERVER_NAME, TEST_SERVER)
-                .with(PostgresConnectorConfig.DROP_SLOT_ON_STOP, true)
-                .with(PostgresConnectorConfig.STATUS_UPDATE_INTERVAL_MS, 100)
-                .with(PostgresConnectorConfig.PLUGIN_NAME, decoderPlugin())
-                .with(PostgresConnectorConfig.SSL_MODE, SecureConnectionMode.DISABLED);
+                .with(HanaConnectorConfig.DROP_SLOT_ON_STOP, true)
+                .with(HanaConnectorConfig.STATUS_UPDATE_INTERVAL_MS, 100)
+                .with(HanaConnectorConfig.PLUGIN_NAME, decoderPlugin())
+                .with(HanaConnectorConfig.SSL_MODE, SecureConnectionMode.DISABLED);
         final String testNetworkTimeout = System.getProperty(TEST_PROPERTY_PREFIX + "network.timeout");
         if (testNetworkTimeout != null && testNetworkTimeout.length() != 0) {
-            builder.with(PostgresConnectorConfig.STATUS_UPDATE_INTERVAL_MS, Integer.parseInt(testNetworkTimeout));
+            builder.with(HanaConnectorConfig.STATUS_UPDATE_INTERVAL_MS, Integer.parseInt(testNetworkTimeout));
         }
         return builder;
     }
@@ -228,7 +228,7 @@ public final class TestHelper {
         String statements = Files.readAllLines(Paths.get(ddlTestFile.toURI()))
                 .stream()
                 .collect(Collectors.joining(System.lineSeparator()));
-        try (PostgresConnection connection = create()) {
+        try (HanaConnection connection = create()) {
             connection.executeWithoutCommitting(statements);
         }
     }
@@ -246,10 +246,10 @@ public final class TestHelper {
     }
 
     protected static SourceInfo sourceInfo() {
-        return new SourceInfo(new PostgresConnectorConfig(
+        return new SourceInfo(new HanaConnectorConfig(
                 Configuration.create()
-                        .with(PostgresConnectorConfig.SERVER_NAME, TEST_SERVER)
-                        .with(PostgresConnectorConfig.DATABASE_NAME, TEST_DATABASE)
+                        .with(HanaConnectorConfig.SERVER_NAME, TEST_SERVER)
+                        .with(HanaConnectorConfig.DATABASE_NAME, TEST_DATABASE)
                         .build()));
     }
 
@@ -267,7 +267,7 @@ public final class TestHelper {
     }
 
     protected static void dropPublication(String publicationName) {
-        if (decoderPlugin().equals(PostgresConnectorConfig.LogicalDecoder.PGOUTPUT)) {
+        if (decoderPlugin().equals(HanaConnectorConfig.LogicalDecoder.PGOUTPUT)) {
             try {
                 execute("DROP PUBLICATION " + publicationName);
             }
@@ -282,8 +282,8 @@ public final class TestHelper {
     }
 
     protected static boolean publicationExists(String publicationName) {
-        if (decoderPlugin().equals(PostgresConnectorConfig.LogicalDecoder.PGOUTPUT)) {
-            try (PostgresConnection connection = create()) {
+        if (decoderPlugin().equals(HanaConnectorConfig.LogicalDecoder.PGOUTPUT)) {
+            try (HanaConnection connection = create()) {
                 String query = String.format("SELECT pubname FROM pg_catalog.pg_publication WHERE pubname = '%s'", publicationName);
                 try {
                     return connection.queryAndMap(query, ResultSet::next);
@@ -297,7 +297,7 @@ public final class TestHelper {
     }
 
     protected static void waitForDefaultReplicationSlotBeActive() {
-        try (PostgresConnection connection = create()) {
+        try (HanaConnection connection = create()) {
             Awaitility.await().atMost(5, TimeUnit.SECONDS).until(() -> connection.prepareQueryAndMap(
                     "select * from pg_replication_slots where slot_name = ? and database = ? and plugin = ? and active = true", statement -> {
                         statement.setString(1, ReplicationConnection.Builder.DEFAULT_SLOT_NAME);
@@ -309,7 +309,7 @@ public final class TestHelper {
     }
 
     protected static void noTransactionActive() throws SQLException {
-        try (PostgresConnection connection = TestHelper.create()) {
+        try (HanaConnection connection = TestHelper.create()) {
             connection.setAutoCommit(true);
             int connectionPID = ((PgConnection) connection.connection()).getBackendPID();
             String connectionStateQuery = "SELECT state FROM pg_stat_activity WHERE pid <> " + connectionPID;

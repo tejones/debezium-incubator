@@ -22,7 +22,7 @@ import org.postgresql.util.PGmoney;
 
 import io.debezium.connector.hana.PostgresStreamingChangeEventSource;
 import io.debezium.connector.hana.PostgresStreamingChangeEventSource.PgConnectionSupplier;
-import io.debezium.connector.hana.PostgresType;
+import io.debezium.connector.hana.HanaType;
 import io.debezium.connector.hana.TypeRegistry;
 
 /**
@@ -54,7 +54,7 @@ public interface ReplicationMessage {
     public interface Column {
         String getName();
 
-        PostgresType getType();
+        HanaType getType();
 
         /**
          * Returns additional metadata about this column's type. May only be called
@@ -128,9 +128,9 @@ public interface ReplicationMessage {
 
         PGpolygon asPolygon();
 
-        boolean isArray(PostgresType type);
+        boolean isArray(HanaType type);
 
-        Object asArray(String columnName, PostgresType type, String fullType, PgConnectionSupplier connection);
+        Object asArray(String columnName, HanaType type, String fullType, PgConnectionSupplier connection);
 
         Object asDefault(TypeRegistry typeRegistry, int columnType, String columnName, String fullType, boolean includeUnknownDatatypes, PgConnectionSupplier connection);
     }

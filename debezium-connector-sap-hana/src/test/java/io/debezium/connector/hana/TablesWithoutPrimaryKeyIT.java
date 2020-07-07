@@ -16,7 +16,7 @@ import org.fest.assertions.Assertions;
 import org.junit.Before;
 import org.junit.Test;
 
-import io.debezium.connector.hana.PostgresConnectorConfig.SnapshotMode;
+import io.debezium.connector.hana.HanaConnectorConfig.SnapshotMode;
 
 /**
  * Integration test to verify behaviour of tables that do not have primary key
@@ -43,8 +43,8 @@ public class TablesWithoutPrimaryKeyIT extends AbstractRecordsProducerTest {
         TestHelper.execute(STATEMENTS);
 
         start(PostgresConnector.class, TestHelper.defaultConfig()
-                .with(PostgresConnectorConfig.SNAPSHOT_MODE, SnapshotMode.INITIAL_ONLY)
-                .with(PostgresConnectorConfig.SCHEMA_WHITELIST, "nopk")
+                .with(HanaConnectorConfig.SNAPSHOT_MODE, SnapshotMode.INITIAL_ONLY)
+                .with(HanaConnectorConfig.SCHEMA_WHITELIST, "nopk")
                 .build());
         assertConnectorIsRunning();
 
@@ -63,8 +63,8 @@ public class TablesWithoutPrimaryKeyIT extends AbstractRecordsProducerTest {
     @Test
     public void shouldProcessFromStreaming() throws Exception {
         start(PostgresConnector.class, TestHelper.defaultConfig()
-                .with(PostgresConnectorConfig.SNAPSHOT_MODE, SnapshotMode.NEVER)
-                .with(PostgresConnectorConfig.SCHEMA_WHITELIST, "nopk")
+                .with(HanaConnectorConfig.SNAPSHOT_MODE, SnapshotMode.NEVER)
+                .with(HanaConnectorConfig.SCHEMA_WHITELIST, "nopk")
                 .build());
         assertConnectorIsRunning();
         waitForStreamingToStart();

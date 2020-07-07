@@ -22,24 +22,24 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.debezium.config.Configuration;
-import io.debezium.connector.hana.connection.PostgresConnection;
+import io.debezium.connector.hana.connection.HanaConnection;
 import io.debezium.util.Strings;
 
 /**
- * A Kafka Connect source connector that creates tasks which use Postgresql streaming replication off a logical replication slot
+ * A Kafka Connect source connector that creates tasks which use SAP HANA Connection
  * to receive incoming changes for a database and publish them to Kafka.
  * <h2>Configuration</h2>
  * <p>
- * This connector is configured with the set of properties described in {@link PostgresConnectorConfig}.
+ * This connector is configured with the set of properties described in {@link HanaConnectorConfig}.
  *
- * @author Horia Chiorean
+ * @author Joao Tavares
  */
-public class PostgresConnector extends SourceConnector {
+public class HanaConnector extends SourceConnector {
 
     private Logger logger = LoggerFactory.getLogger(getClass());
     private Map<String, String> props;
 
-    public PostgresConnector() {
+    public HanaConnector() {
     }
 
     @Override
@@ -49,7 +49,7 @@ public class PostgresConnector extends SourceConnector {
 
     @Override
     public Class<? extends Task> taskClass() {
-        return PostgresConnectorTask.class;
+        return HanaConnectorTask.class;
     }
 
     @Override
@@ -70,23 +70,23 @@ public class PostgresConnector extends SourceConnector {
 
     @Override
     public ConfigDef config() {
-        return PostgresConnectorConfig.configDef();
+        return HanaConnectorConfig.configDef();
     }
 
     @Override
     public Config validate(Map<String, String> connectorConfigs) {
-        PostgresConnectorConfig config = new PostgresConnectorConfig(Configuration.from(connectorConfigs));
+        HanaConnectorConfig config = new HanaConnectorConfig(Configuration.from(connectorConfigs));
 
         // First, validate all of the individual fields, which is easy since don't make any of the fields invisible ...
         Map<String, ConfigValue> results = config.validate();
 
         // Get the config values for each of the connection-related fields ...
-        ConfigValue hostnameValue = results.get(PostgresConnectorConfig.HOSTNAME.name());
-        ConfigValue portValue = results.get(PostgresConnectorConfig.PORT.name());
-        ConfigValue databaseValue = results.get(PostgresConnectorConfig.DATABASE_NAME.name());
-        ConfigValue userValue = results.get(PostgresConnectorConfig.USER.name());
-        ConfigValue passwordValue = results.get(PostgresConnectorConfig.PASSWORD.name());
-        final String passwordStringValue = config.getConfig().getString(PostgresConnectorConfig.PASSWORD);
+        ConfigValue hostnameValue = results.get(HanaConnectorConfig.HOSTNAME.name());
+        ConfigValue portValue = results.get(HanaConnectorConfig.PORT.name());
+        ConfigValue databaseValue = results.get(HanaConnectorConfig.DATABASE_NAME.name());
+        ConfigValue userValue = results.get(HanaConnectorConfig.USER.name());
+        ConfigValue passwordValue = results.get(HanaConnectorConfig.PASSWORD.name());
+        final String passwordStringValue = config.getConfig().getString(HanaConnectorConfig.PASSWORD);
 
         if (Strings.isNullOrEmpty(passwordStringValue)) {
             logger.warn("The connection password is empty");
@@ -99,7 +99,7 @@ public class PostgresConnector extends SourceConnector {
                 && passwordValue.errorMessages().isEmpty()
                 && databaseValue.errorMessages().isEmpty()) {
             // Try to connect to the database ...
-            try (PostgresConnection connection = new PostgresConnection(config.jdbcConfig())) {
+            try (HanaConnection connection = new HanaConnection(config.jdbcConfig())) {
                 try {
                     connection.execute("SELECT version()");
                     logger.info("Successfully tested connection for {} with user '{}'", connection.connectionString(),

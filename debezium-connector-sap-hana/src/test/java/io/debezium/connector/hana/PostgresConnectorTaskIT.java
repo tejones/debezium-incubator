@@ -18,19 +18,19 @@ import io.debezium.connector.hana.connection.ReplicationConnection;
 import io.debezium.doc.FixFor;
 
 /**
- * Integration test for {@link PostgresConnectorTask} class.
+ * Integration test for {@link HanaConnectorTask} class.
  */
 public class PostgresConnectorTaskIT {
 
     @Test
     @FixFor("DBZ-519")
     public void shouldNotThrowNullPointerExceptionDuringCommit() throws Exception {
-        PostgresConnectorTask postgresConnectorTask = new PostgresConnectorTask();
+        HanaConnectorTask postgresConnectorTask = new HanaConnectorTask();
         postgresConnectorTask.commit();
     }
 
     class FakeContext extends PostgresTaskContext {
-        public FakeContext(PostgresConnectorConfig postgresConnectorConfig, PostgresSchema postgresSchema) {
+        public FakeContext(HanaConnectorConfig postgresConnectorConfig, HanaSchema postgresSchema) {
             super(postgresConnectorConfig, postgresSchema, null);
         }
 
@@ -43,14 +43,14 @@ public class PostgresConnectorTaskIT {
     @Test(expected = ConnectException.class)
     @FixFor("DBZ-1426")
     public void retryOnFailureToCreateConnection() throws Exception {
-        PostgresConnectorTask postgresConnectorTask = new PostgresConnectorTask();
-        PostgresConnectorConfig config = new PostgresConnectorConfig(TestHelper.defaultConfig().build());
+        HanaConnectorTask postgresConnectorTask = new HanaConnectorTask();
+        HanaConnectorConfig config = new HanaConnectorConfig(TestHelper.defaultConfig().build());
         long startTime = System.currentTimeMillis();
-        postgresConnectorTask.createReplicationConnection(new FakeContext(config, new PostgresSchema(
+        postgresConnectorTask.createReplicationConnection(new FakeContext(config, new HanaSchema(
                 config,
                 null,
                 Charset.forName("UTF-8"),
-                PostgresTopicSelector.create(config))), true, 3, Duration.ofSeconds(2));
+                HanaTopicSelector.create(config))), true, 3, Duration.ofSeconds(2));
 
         // Verify retry happened for 10 seconds
         long endTime = System.currentTimeMillis();

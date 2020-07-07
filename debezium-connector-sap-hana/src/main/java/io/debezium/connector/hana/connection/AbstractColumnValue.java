@@ -27,7 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.debezium.connector.hana.PostgresStreamingChangeEventSource.PgConnectionSupplier;
-import io.debezium.connector.hana.PostgresType;
+import io.debezium.connector.hana.HanaType;
 import io.debezium.connector.hana.TypeRegistry;
 import io.debezium.connector.hana.connection.wal2json.DateTimeFormat;
 
@@ -173,12 +173,12 @@ public abstract class AbstractColumnValue<T> implements ReplicationMessage.Colum
     }
 
     @Override
-    public boolean isArray(PostgresType type) {
+    public boolean isArray(HanaType type) {
         return type.isArrayType();
     }
 
     @Override
-    public Object asArray(String columnName, PostgresType type, String fullType, PgConnectionSupplier connection) {
+    public Object asArray(String columnName, HanaType type, String fullType, PgConnectionSupplier connection) {
         try {
             final String dataString = asString();
             return new PgArray(connection.get(), type.getOid(), dataString);

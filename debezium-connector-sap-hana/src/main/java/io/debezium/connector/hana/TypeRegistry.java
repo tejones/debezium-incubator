@@ -24,14 +24,16 @@ import org.postgresql.core.TypeInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.debezium.connector.hana.connection.PostgresConnection;
+import io.debezium.connector.hana.connection.HanaConnection;
 import io.debezium.util.Collect;
 
 /**
- * A registry of types supported by a PostgreSQL instance. Allows lookup of the types according to
+ * A registry of types supported by a SAP HANA instance. Allows lookup of the types according to
  * type name or OID.
+ * 
+ * This wasa copied from the PostgreSQL connector, currently not completed for the HANA usecase
  *
- * @author Jiri Pechanec
+ * @author Joao Tavares
  *
  */
 public class TypeRegistry {
@@ -82,28 +84,57 @@ public class TypeRegistry {
 
     private static Map<String, String> getLongTypeNames() {
         Map<String, String> longTypeNames = new HashMap<>();
+        
+        //Character string types
+        longTypeNames.put("character varying non-unicode", "VARCHAR");
+        longTypeNames.put("character varying unicode", "NVARCHAR");
+        longTypeNames.put("variable-length alphanumeric character string", "ALPHANUM");  
+        longTypeNames.put("variable-length character string that supports text search features", "SHORTTEXT");  
+        
+        //Datetime types
+        longTypeNames.put("date YYYY-MM-DD", "DATE");
+        longTypeNames.put("time without time zone HH24:MI:SS", "TIME");
+        longTypeNames.put("date with time YYYY-MM-DD HH24:MI:SS", "SECONDDATE");
+        longTypeNames.put("timestamp YYYY-MM-DD HH24:MI:SS.FF7. FF", "TIMESTAMP");
+        
+        //Numeric types
+        longTypeNames.put("tinyint 8-bit unsigned integer", "TINYINT");
+        longTypeNames.put("smallint 16-bit signed integer", "SMALLINT");
+        longTypeNames.put("integer 32-bit signed integer", "INTEGER");        
+        longTypeNames.put("bigint 64-bit signed integer", "BIGINT");
+        longTypeNames.put("decimal fixed-point decimals", "DECIMAL");
+        longTypeNames.put("smalldecimal fixed-point decimals", "SMALLDECIMAL");
+        longTypeNames.put("real single-precision, 32-bit floating-point number", "REAL");
+        longTypeNames.put("double-precision, 64-bit floating-point number", "DOUBLE");
+        longTypeNames.put("float 32-bit or 64-bit real number", "FLOAT");
+        
+        //Boolean Type
+        longTypeNames.put("boolean values", "BOOLEAN");
+        
+        //Binary types
+        longTypeNames.put("binary data", "VARBINARY");
 
-        longTypeNames.put("bigint", "int8");
-        longTypeNames.put("bit varying", "varbit");
-        longTypeNames.put("boolean", "bool");
-        longTypeNames.put("character", "bpchar");
-        longTypeNames.put("character varying", "varchar");
-        longTypeNames.put("double precision", "float8");
-        longTypeNames.put("integer", "int4");
-        longTypeNames.put("real", "float4");
-        longTypeNames.put("smallint", "int2");
-        longTypeNames.put("timestamp without time zone", "timestamp");
-        longTypeNames.put("timestamp with time zone", "timestamptz");
-        longTypeNames.put("time without time zone", "time");
-        longTypeNames.put("time with time zone", "timetz");
+        //Large Object types
+        longTypeNames.put("large amounts of binary data", "BLOB");
+        longTypeNames.put("large amounts of 7-bit ASCII character data", "CLOB");
+        longTypeNames.put("large Unicode character object", "NCLOB");
+        longTypeNames.put("enables text search features", "TEXT");
+        longTypeNames.put("enables text search features, possible to insert binary data", "BINTEXT");
+        
+        //Multi-valued types
+        longTypeNames.put("collections of values sharing the same data type", "ARRAY");
+        
+        //Spatial types
+        longTypeNames.put("point spacial", "ST_Point");
+        longTypeNames.put("geometry spacial", "ST_Geometry");
 
         return longTypeNames;
     }
 
-    private final Map<String, PostgresType> nameToType = new HashMap<>();
-    private final Map<Integer, PostgresType> oidToType = new HashMap<>();
+    private final Map<String, HanaType> nameToType = new HashMap<>();
+    private final Map<Integer, HanaType> oidToType = new HashMap<>();
 
-    private final PostgresConnection connection;
+    private final HanaConnection connection;
 
     private int geometryOid = Integer.MIN_VALUE;
     private int geographyOid = Integer.MIN_VALUE;
@@ -117,12 +148,12 @@ public class TypeRegistry {
     private int citextArrayOid = Integer.MIN_VALUE;
     private int ltreeArrayOid = Integer.MIN_VALUE;
 
-    public TypeRegistry(PostgresConnection connection) {
+    public TypeRegistry(HanaConnection connection) {
         this.connection = connection;
         prime();
     }
 
-    private void addType(PostgresType type) {
+    private void addType(HanaType type) {
         oidToType.put(type.getOid(), type);
         nameToType.put(type.getName(), type);
 
@@ -163,13 +194,13 @@ public class TypeRegistry {
      * @param oid - PostgreSQL OID
      * @return type associated with the given OID
      */
-    public PostgresType get(int oid) {
-        PostgresType r = oidToType.get(oid);
+    public HanaType get(int oid) {
+        HanaType r = oidToType.get(oid);
         if (r == null) {
             r = resolveUnknownType(oid);
             if (r == null) {
                 LOGGER.warn("Unknown OID {} requested", oid);
-                r = PostgresType.UNKNOWN;
+                r = HanaType.UNKNOWN;
             }
         }
         return r;
@@ -180,7 +211,7 @@ public class TypeRegistry {
      * @param name - PostgreSQL type name
      * @return type associated with the given type name
      */
-    public PostgresType get(String name) {
+    public HanaType get(String name) {
         switch (name) {
             case "serial":
                 name = "int4";
@@ -199,12 +230,12 @@ public class TypeRegistry {
         if (name.charAt(0) == '"') {
             name = name.substring(1, name.length() - 1);
         }
-        PostgresType r = nameToType.get(name);
+        HanaType r = nameToType.get(name);
         if (r == null) {
             r = resolveUnknownType(name);
             if (r == null) {
                 LOGGER.warn("Unknown type named {} requested", name);
-                r = PostgresType.UNKNOWN;
+                r = HanaType.UNKNOWN;
             }
         }
         return r;
@@ -315,7 +346,7 @@ public class TypeRegistry {
             try (final Statement statement = pgConnection.createStatement()) {
                 // Read non-array types
                 try (final ResultSet rs = statement.executeQuery(SQL_NON_ARRAY_TYPES)) {
-                    final List<PostgresType.Builder> delayResolvedBuilders = new ArrayList<>();
+                    final List<HanaType.Builder> delayResolvedBuilders = new ArrayList<>();
                     while (rs.next()) {
                         // Coerce long to int so large unsigned values are represented as signed
                         // Same technique is used in TypeInfoCache
@@ -325,7 +356,7 @@ public class TypeRegistry {
                         String typeName = rs.getString("name");
                         String category = rs.getString("category");
 
-                        PostgresType.Builder builder = new PostgresType.Builder(
+                        HanaType.Builder builder = new HanaType.Builder(
                                 this,
                                 typeName,
                                 oid,
@@ -349,14 +380,14 @@ public class TypeRegistry {
                     }
 
                     // Resolve delayed builders
-                    for (PostgresType.Builder builder : delayResolvedBuilders) {
+                    for (HanaType.Builder builder : delayResolvedBuilders) {
                         addType(builder.build());
                     }
                 }
 
                 // Read array types
                 try (final ResultSet rs = statement.executeQuery(SQL_ARRAY_TYPES)) {
-                    final List<PostgresType.Builder> delayResolvedBuilders = new ArrayList<>();
+                    final List<HanaType.Builder> delayResolvedBuilders = new ArrayList<>();
                     while (rs.next()) {
                         // int2vector and oidvector will not be treated as arrays
                         final int oid = (int) rs.getLong("oid");
@@ -364,7 +395,7 @@ public class TypeRegistry {
                         final int modifiers = (int) rs.getLong("modifiers");
                         String typeName = rs.getString("name");
 
-                        PostgresType.Builder builder = new PostgresType.Builder(
+                        HanaType.Builder builder = new HanaType.Builder(
                                 this,
                                 typeName,
                                 oid,
@@ -386,7 +417,7 @@ public class TypeRegistry {
                     }
 
                     // Resolve delayed builders
-                    for (PostgresType.Builder builder : delayResolvedBuilders) {
+                    for (HanaType.Builder builder : delayResolvedBuilders) {
                         addType(builder.build());
                     }
                 }
@@ -403,7 +434,7 @@ public class TypeRegistry {
         }
     }
 
-    private PostgresType resolveUnknownType(String name) {
+    private HanaType resolveUnknownType(String name) {
         try {
             LOGGER.trace("Type '{}' not cached, attempting to lookup from database.", name);
             final Connection connection = this.connection.connection();
@@ -420,7 +451,7 @@ public class TypeRegistry {
                         String typeName = rs.getString("name");
                         String category = rs.getString("category");
 
-                        PostgresType.Builder builder = new PostgresType.Builder(
+                        HanaType.Builder builder = new HanaType.Builder(
                                 this,
                                 typeName,
                                 oid,
@@ -432,7 +463,7 @@ public class TypeRegistry {
                             builder = builder.enumValues(resolveEnumValues(connection, oid));
                         }
 
-                        PostgresType result = builder.parentType(parentTypeOid).build();
+                        HanaType result = builder.parentType(parentTypeOid).build();
                         addType(result);
 
                         return result;
@@ -447,7 +478,7 @@ public class TypeRegistry {
         return null;
     }
 
-    private PostgresType resolveUnknownType(int lookupOid) {
+    private HanaType resolveUnknownType(int lookupOid) {
         try {
             LOGGER.trace("Type OID '{}' not cached, attempting to lookup from database.", lookupOid);
             final Connection connection = this.connection.connection();
@@ -464,7 +495,7 @@ public class TypeRegistry {
                         String typeName = rs.getString("name");
                         String category = rs.getString("category");
 
-                        PostgresType.Builder builder = new PostgresType.Builder(
+                        HanaType.Builder builder = new HanaType.Builder(
                                 this,
                                 typeName,
                                 oid,
@@ -476,7 +507,7 @@ public class TypeRegistry {
                             builder = builder.enumValues(resolveEnumValues(connection, oid));
                         }
 
-                        PostgresType result = builder.parentType(parentTypeOid).build();
+                        HanaType result = builder.parentType(parentTypeOid).build();
                         addType(result);
 
                         return result;
@@ -505,32 +536,15 @@ public class TypeRegistry {
     }
 
     /**
-     * Allows to obtain the SQL type corresponding to PG types. This uses a custom statement instead of going through
-     * {@link PgDatabaseMetaData#getTypeInfo()} as the latter causes N+1 SELECTs, making it very slow on installations
-     * with many custom types.
+     * Allows to obtain the SQL type corresponding to HANA types.
      *
-     * @author Gunnar Morling
-     * @see DBZ-899
      */
     private static class SqlTypeMapper {
 
         /**
-         * Based on org.postgresql.jdbc.TypeInfoCache.getSQLType(String). To emulate the original statement's behavior
-         * (which works for single types only), PG's DISTINCT ON extension is used to just return the first entry should a
-         * type exist in multiple schemas.
+         * View that shows the available Data types
          */
-        private static final String SQL_TYPE_DETAILS = "SELECT DISTINCT ON (typname) typname, typinput='array_in'::regproc, typtype, sp.r, pg_type.oid "
-                + "  FROM pg_catalog.pg_type "
-                + "  LEFT "
-                + "  JOIN (select ns.oid as nspoid, ns.nspname, r.r "
-                + "          from pg_namespace as ns "
-                // -- go with older way of unnesting array to be compatible with 8.0
-                + "          join ( select s.r, (current_schemas(false))[s.r] as nspname "
-                + "                   from generate_series(1, array_upper(current_schemas(false), 1)) as s(r) ) as r "
-                + "         using ( nspname ) "
-                + "       ) as sp "
-                + "    ON sp.nspoid = typnamespace "
-                + " ORDER BY typname, sp.r, pg_type.oid;";
+        private static final String SQL_TYPE_DETAILS = " SELECT * FROM SYS.DATA_TYPES dt ;";
 
         private final TypeInfo typeInfo;
         private final Set<String> preloadedSqlTypes;

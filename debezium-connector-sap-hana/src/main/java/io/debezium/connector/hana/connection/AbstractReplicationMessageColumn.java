@@ -12,7 +12,7 @@ import org.apache.kafka.connect.errors.ConnectException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.debezium.connector.hana.PostgresType;
+import io.debezium.connector.hana.HanaType;
 
 /**
  * Extracts type information from replication messages and associates them with each column.
@@ -101,9 +101,9 @@ public abstract class AbstractReplicationMessageColumn implements ReplicationMes
     private final boolean optional;
     private TypeMetadataImpl typeMetadata;
     private final boolean hasMetadata;
-    private final PostgresType type;
+    private final HanaType type;
 
-    public AbstractReplicationMessageColumn(String columnName, PostgresType type, String typeWithModifiers, boolean optional, boolean hasMetadata) {
+    public AbstractReplicationMessageColumn(String columnName, HanaType type, String typeWithModifiers, boolean optional, boolean hasMetadata) {
         super();
         this.columnName = columnName;
         this.type = type;
@@ -121,7 +121,7 @@ public abstract class AbstractReplicationMessageColumn implements ReplicationMes
      * @return the {@link PostgresType} containing both OID and JDBC id.
      */
     @Override
-    public PostgresType getType() {
+    public HanaType getType() {
         return type;
     }
 

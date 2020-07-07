@@ -20,23 +20,26 @@ import io.debezium.relational.Tables.TableFilter;
 /**
  * A utility that is contains various filters for acceptable {@link TableId}s and columns.
  *
- * @author Horia Chiorean
+ * @author Joao Tavares
  */
 @Immutable
 public class Filters {
 
-    protected static final List<String> SYSTEM_SCHEMAS = Arrays.asList("pg_catalog", "information_schema");
+    protected static final List<String> SYSTEM_SCHEMAS = Arrays.asList("SYS", "SYSTEM", "_SYS*", "SAP*", "HANA*");
     protected static final String SYSTEM_SCHEMA_BLACKLIST = String.join(",", SYSTEM_SCHEMAS);
     protected static final Predicate<String> IS_SYSTEM_SCHEMA = SYSTEM_SCHEMAS::contains;
+    
+    /*
     protected static final String TEMP_TABLE_BLACKLIST = ".*\\.pg_temp.*";
+    */
 
-    private final TableFilter tableFilter;
+    private final TableFilter tableFilter;	
     private final ColumnNameFilter columnFilter;
 
     /**
      * @param config the configuration; may not be null
      */
-    public Filters(PostgresConnectorConfig config) {
+    public Filters(HanaConnectorConfig config) {
 
         // we always want to exclude PG system schemas as they are never part of logical decoding events
         String schemaBlacklist = config.schemaBlacklist();
@@ -48,12 +51,15 @@ public class Filters {
         }
 
         String tableBlacklist = config.tableBlacklist();
+        
+        /* What are the temp tables in SAP HANA?
         if (tableBlacklist != null) {
             tableBlacklist = tableBlacklist + "," + TEMP_TABLE_BLACKLIST;
         }
         else {
             tableBlacklist = TEMP_TABLE_BLACKLIST;
         }
+        */
 
         // Define the filter using the whitelists and blacklists for table names ...
         this.tableFilter = TableFilter.fromPredicate(Selectors.tableSelector()

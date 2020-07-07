@@ -26,7 +26,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestRule;
 
-import io.debezium.connector.hana.connection.PostgresConnection;
+import io.debezium.connector.hana.connection.HanaConnection;
 import io.debezium.connector.hana.data.Ltree;
 import io.debezium.connector.hana.junit.SkipTestDependingOnDatabaseVersionRule;
 import io.debezium.connector.hana.junit.SkipWhenDatabaseVersionLessThan;
@@ -53,7 +53,7 @@ import io.debezium.util.SchemaNameAdjuster;
 import io.debezium.util.Strings;
 
 /**
- * Unit test for {@link PostgresSchema}
+ * Unit test for {@link HanaSchema}
  *
  * @author Horia Chiorean (hchiorea@redhat.com)
  */
@@ -70,7 +70,7 @@ public class PostgresSchemaIT {
             "public.custom_table"
     };
 
-    private PostgresSchema schema;
+    private HanaSchema schema;
 
     @Before
     public void before() throws SQLException {
@@ -81,10 +81,10 @@ public class PostgresSchemaIT {
     public void shouldLoadSchemaForBuiltinPostgresTypes() throws Exception {
         TestHelper.executeDDL("postgres_create_tables.ddl");
 
-        PostgresConnectorConfig config = new PostgresConnectorConfig(TestHelper.defaultConfig().build());
+        HanaConnectorConfig config = new HanaConnectorConfig(TestHelper.defaultConfig().build());
         schema = TestHelper.getSchema(config);
 
-        try (PostgresConnection connection = TestHelper.create()) {
+        try (HanaConnection connection = TestHelper.create()) {
             schema.refresh(connection, false);
             assertTablesIncluded(TEST_TABLES);
             Arrays.stream(TEST_TABLES).forEach(tableId -> assertKeySchema(tableId, "pk", Schema.INT32_SCHEMA));
@@ -141,10 +141,10 @@ public class PostgresSchemaIT {
         String ddl = "CREATE TABLE macaddr8_table (pk SERIAL, m MACADDR8, PRIMARY KEY(pk));";
 
         TestHelper.execute(ddl);
-        PostgresConnectorConfig config = new PostgresConnectorConfig(TestHelper.defaultConfig().build());
+        HanaConnectorConfig config = new HanaConnectorConfig(TestHelper.defaultConfig().build());
         schema = TestHelper.getSchema(config);
 
-        try (PostgresConnection connection = TestHelper.create()) {
+        try (HanaConnection connection = TestHelper.create()) {
             schema.refresh(connection, false);
             assertTablesIncluded(tableId);
             assertKeySchema(tableId, "pk", Schema.INT32_SCHEMA);
@@ -155,12 +155,12 @@ public class PostgresSchemaIT {
     @Test
     public void shouldLoadSchemaForExtensionPostgresTypes() throws Exception {
         TestHelper.executeDDL("postgres_create_tables.ddl");
-        PostgresConnectorConfig config = new PostgresConnectorConfig(
-                TestHelper.defaultConfig().with(PostgresConnectorConfig.INCLUDE_UNKNOWN_DATATYPES, true).build());
+        HanaConnectorConfig config = new HanaConnectorConfig(
+                TestHelper.defaultConfig().with(HanaConnectorConfig.INCLUDE_UNKNOWN_DATATYPES, true).build());
 
         schema = TestHelper.getSchema(config);
 
-        try (PostgresConnection connection = TestHelper.create()) {
+        try (HanaConnection connection = TestHelper.create()) {
             schema.refresh(connection, false);
             assertTablesIncluded(TEST_TABLES);
             assertTableSchema("public.custom_table", "lt", Ltree.builder().optional().build());
@@ -172,10 +172,10 @@ public class PostgresSchemaIT {
     public void shouldLoadSchemaForPostgisTypes() throws Exception {
         TestHelper.executeDDL("init_postgis.ddl");
         TestHelper.executeDDL("postgis_create_tables.ddl");
-        PostgresConnectorConfig config = new PostgresConnectorConfig(TestHelper.defaultConfig().build());
+        HanaConnectorConfig config = new HanaConnectorConfig(TestHelper.defaultConfig().build());
         schema = TestHelper.getSchema(config);
 
-        try (PostgresConnection connection = TestHelper.create()) {
+        try (HanaConnection connection = TestHelper.create()) {
             schema.refresh(connection, false);
             final String[] testTables = new String[]{ "public.postgis_table" };
             assertTablesIncluded(testTables);
@@ -199,53 +199,53 @@ public class PostgresSchemaIT {
                 "CREATE TABLE s2.A (pk SERIAL, aa integer, PRIMARY KEY(pk));" +
                 "CREATE TABLE s2.B (pk SERIAL, ba integer, PRIMARY KEY(pk));";
         TestHelper.execute(statements);
-        PostgresConnectorConfig config = new PostgresConnectorConfig(TestHelper.defaultConfig().with(SCHEMA_BLACKLIST, "s1").build());
+        HanaConnectorConfig config = new HanaConnectorConfig(TestHelper.defaultConfig().with(SCHEMA_BLACKLIST, "s1").build());
         final TypeRegistry typeRegistry = TestHelper.getTypeRegistry();
         schema = TestHelper.getSchema(config, typeRegistry);
-        try (PostgresConnection connection = TestHelper.create()) {
+        try (HanaConnection connection = TestHelper.create()) {
             schema.refresh(connection, false);
             assertTablesIncluded("s2.a", "s2.b");
             assertTablesExcluded("s1.a", "s1.b");
         }
 
-        config = new PostgresConnectorConfig(TestHelper.defaultConfig().with(SCHEMA_BLACKLIST, "s.*").build());
+        config = new HanaConnectorConfig(TestHelper.defaultConfig().with(SCHEMA_BLACKLIST, "s.*").build());
         schema = TestHelper.getSchema(config, typeRegistry);
-        try (PostgresConnection connection = TestHelper.create()) {
+        try (HanaConnection connection = TestHelper.create()) {
             schema.refresh(connection, false);
             assertTablesExcluded("s1.a", "s2.a", "s1.b", "s2.b");
         }
 
-        config = new PostgresConnectorConfig(TestHelper.defaultConfig().with(PostgresConnectorConfig.TABLE_BLACKLIST, "s1.A,s2.A").build());
+        config = new HanaConnectorConfig(TestHelper.defaultConfig().with(HanaConnectorConfig.TABLE_BLACKLIST, "s1.A,s2.A").build());
         schema = TestHelper.getSchema(config, typeRegistry);
-        try (PostgresConnection connection = TestHelper.create()) {
+        try (HanaConnection connection = TestHelper.create()) {
             schema.refresh(connection, false);
             assertTablesIncluded("s1.b", "s2.b");
             assertTablesExcluded("s1.a", "s2.a");
         }
 
-        config = new PostgresConnectorConfig(TestHelper.defaultConfig()
+        config = new HanaConnectorConfig(TestHelper.defaultConfig()
                 .with(SCHEMA_BLACKLIST, "s2")
-                .with(PostgresConnectorConfig.TABLE_BLACKLIST, "s1.A")
+                .with(HanaConnectorConfig.TABLE_BLACKLIST, "s1.A")
                 .build());
         schema = TestHelper.getSchema(config, typeRegistry);
-        try (PostgresConnection connection = TestHelper.create()) {
+        try (HanaConnection connection = TestHelper.create()) {
             schema.refresh(connection, false);
             assertTablesIncluded("s1.b");
             assertTablesExcluded("s1.a", "s2.a", "s2.b");
         }
 
-        config = new PostgresConnectorConfig(TestHelper.defaultConfig().with(PostgresConnectorConfig.COLUMN_BLACKLIST, ".*aa")
+        config = new HanaConnectorConfig(TestHelper.defaultConfig().with(HanaConnectorConfig.COLUMN_BLACKLIST, ".*aa")
                 .build());
         schema = TestHelper.getSchema(config, typeRegistry);
-        try (PostgresConnection connection = TestHelper.create()) {
+        try (HanaConnection connection = TestHelper.create()) {
             schema.refresh(connection, false);
             assertColumnsExcluded("s1.a.aa", "s2.a.aa");
         }
 
-        config = new PostgresConnectorConfig(TestHelper.defaultConfig().with(PostgresConnectorConfig.COLUMN_WHITELIST, ".*bb")
+        config = new HanaConnectorConfig(TestHelper.defaultConfig().with(HanaConnectorConfig.COLUMN_WHITELIST, ".*bb")
                 .build());
         schema = TestHelper.getSchema(config, typeRegistry);
-        try (PostgresConnection connection = TestHelper.create()) {
+        try (HanaConnection connection = TestHelper.create()) {
             schema.refresh(connection, false);
             assertColumnsExcluded("s1.a.aa", "s2.a.aa");
         }
@@ -257,9 +257,9 @@ public class PostgresSchemaIT {
                 "DROP TABLE IF EXISTS table1;" +
                 "CREATE TABLE table1 (pk SERIAL,  PRIMARY KEY(pk));";
         TestHelper.execute(statements);
-        PostgresConnectorConfig config = new PostgresConnectorConfig(TestHelper.defaultConfig().build());
+        HanaConnectorConfig config = new HanaConnectorConfig(TestHelper.defaultConfig().build());
         schema = TestHelper.getSchema(config);
-        try (PostgresConnection connection = TestHelper.create()) {
+        try (HanaConnection connection = TestHelper.create()) {
             schema.refresh(connection, false);
             assertTablesIncluded("public.table1");
         }
@@ -268,7 +268,7 @@ public class PostgresSchemaIT {
                 "CREATE TABLE table2 (pk SERIAL, strcol VARCHAR, PRIMARY KEY(pk));";
         TestHelper.execute(statements);
         String tableId = "public.table2";
-        try (PostgresConnection connection = TestHelper.create()) {
+        try (HanaConnection connection = TestHelper.create()) {
             schema.refresh(connection, false);
             assertTablesIncluded(tableId);
             assertTablesExcluded("public.table1");
@@ -280,7 +280,7 @@ public class PostgresSchemaIT {
                 "ALTER TABLE table2 DROP COLUMN strcol;";
 
         TestHelper.execute(statements);
-        try (PostgresConnection connection = TestHelper.create()) {
+        try (HanaConnection connection = TestHelper.create()) {
             schema.refresh(connection, TableId.parse(tableId, false), false);
             assertTablesIncluded(tableId);
             assertTablesExcluded("public.table1");
@@ -296,14 +296,14 @@ public class PostgresSchemaIT {
                 "DROP TABLE IF EXISTS table1;" +
                 "CREATE TABLE table1 (pk SERIAL,  toasted text, untoasted int, PRIMARY KEY(pk));";
         TestHelper.execute(statements);
-        PostgresConnectorConfig config = new PostgresConnectorConfig(TestHelper.defaultConfig().build());
+        HanaConnectorConfig config = new HanaConnectorConfig(TestHelper.defaultConfig().build());
         schema = TestHelper.getSchema(config);
         TableId tableId = TableId.parse("public.table1", false);
 
         // Before refreshing, we should have an empty array for the table
         assertTrue(schema.getToastableColumnsForTableId(tableId).isEmpty());
 
-        try (PostgresConnection connection = TestHelper.create()) {
+        try (HanaConnection connection = TestHelper.create()) {
             // Load up initial schema info. This should not populate the toastable columns cache, as the cache is loaded
             // on-demand per-table refresh.
             schema.refresh(connection, false);

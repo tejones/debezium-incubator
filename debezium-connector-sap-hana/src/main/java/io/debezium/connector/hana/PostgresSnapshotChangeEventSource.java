@@ -17,7 +17,7 @@ import org.postgresql.util.PGmoney;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.debezium.connector.hana.connection.PostgresConnection;
+import io.debezium.connector.hana.connection.HanaConnection;
 import io.debezium.connector.hana.connection.ReplicationConnection;
 import io.debezium.connector.hana.spi.SlotCreationResult;
 import io.debezium.connector.hana.spi.Snapshotter;
@@ -37,14 +37,14 @@ public class PostgresSnapshotChangeEventSource extends RelationalSnapshotChangeE
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PostgresSnapshotChangeEventSource.class);
 
-    private final PostgresConnectorConfig connectorConfig;
-    private final PostgresConnection jdbcConnection;
-    private final PostgresSchema schema;
+    private final HanaConnectorConfig connectorConfig;
+    private final HanaConnection jdbcConnection;
+    private final HanaSchema schema;
     private final Snapshotter snapshotter;
     private final SlotCreationResult slotCreatedInfo;
 
-    public PostgresSnapshotChangeEventSource(PostgresConnectorConfig connectorConfig, Snapshotter snapshotter, PostgresOffsetContext previousOffset,
-                                             PostgresConnection jdbcConnection, PostgresSchema schema, EventDispatcher<TableId> dispatcher, Clock clock,
+    public PostgresSnapshotChangeEventSource(HanaConnectorConfig connectorConfig, Snapshotter snapshotter, PostgresOffsetContext previousOffset,
+                                             HanaConnection jdbcConnection, HanaSchema schema, EventDispatcher<TableId> dispatcher, Clock clock,
                                              SnapshotProgressListener snapshotProgressListener, SlotCreationResult slotCreatedInfo) {
         super(connectorConfig, previousOffset, jdbcConnection, dispatcher, clock, snapshotProgressListener);
         this.connectorConfig = connectorConfig;

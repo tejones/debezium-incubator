@@ -50,9 +50,9 @@ import io.debezium.config.CommonConnectorConfig.Version;
 import io.debezium.config.Configuration;
 import io.debezium.config.EnumeratedValue;
 import io.debezium.config.Field;
-import io.debezium.connector.hana.PostgresConnectorConfig.LogicalDecoder;
-import io.debezium.connector.hana.PostgresConnectorConfig.SnapshotMode;
-import io.debezium.connector.hana.connection.PostgresConnection;
+import io.debezium.connector.hana.HanaConnectorConfig.LogicalDecoder;
+import io.debezium.connector.hana.HanaConnectorConfig.SnapshotMode;
+import io.debezium.connector.hana.connection.HanaConnection;
 import io.debezium.connector.hana.connection.ReplicationConnection;
 import io.debezium.connector.hana.junit.SkipTestDependingOnDatabaseVersionRule;
 import io.debezium.connector.hana.junit.SkipTestDependingOnDecoderPluginNameRule;
@@ -123,7 +123,7 @@ public class PostgresConnectorIT extends AbstractConnectorTest {
         connector = new PostgresConnector();
         ConfigDef configDef = connector.config();
         assertThat(configDef).isNotNull();
-        PostgresConnectorConfig.ALL_FIELDS.forEach(this::validateFieldDef);
+        HanaConnectorConfig.ALL_FIELDS.forEach(this::validateFieldDef);
     }
 
     @Test
@@ -155,58 +155,58 @@ public class PostgresConnectorIT extends AbstractConnectorTest {
         PostgresConnector connector = new PostgresConnector();
         Config validatedConfig = connector.validate(config.asMap());
         // validate that the required fields have errors
-        assertConfigurationErrors(validatedConfig, PostgresConnectorConfig.HOSTNAME, 1);
-        assertConfigurationErrors(validatedConfig, PostgresConnectorConfig.USER, 1);
-        assertConfigurationErrors(validatedConfig, PostgresConnectorConfig.DATABASE_NAME, 1);
-        assertConfigurationErrors(validatedConfig, PostgresConnectorConfig.SERVER_NAME, 1);
+        assertConfigurationErrors(validatedConfig, HanaConnectorConfig.HOSTNAME, 1);
+        assertConfigurationErrors(validatedConfig, HanaConnectorConfig.USER, 1);
+        assertConfigurationErrors(validatedConfig, HanaConnectorConfig.DATABASE_NAME, 1);
+        assertConfigurationErrors(validatedConfig, HanaConnectorConfig.SERVER_NAME, 1);
 
         // validate the non required fields
-        validateField(validatedConfig, PostgresConnectorConfig.PLUGIN_NAME, LogicalDecoder.DECODERBUFS.getValue());
-        validateField(validatedConfig, PostgresConnectorConfig.SLOT_NAME, ReplicationConnection.Builder.DEFAULT_SLOT_NAME);
-        validateField(validatedConfig, PostgresConnectorConfig.DROP_SLOT_ON_STOP, Boolean.FALSE);
-        validateField(validatedConfig, PostgresConnectorConfig.PORT, PostgresConnectorConfig.DEFAULT_PORT);
-        validateField(validatedConfig, PostgresConnectorConfig.MAX_QUEUE_SIZE, PostgresConnectorConfig.DEFAULT_MAX_QUEUE_SIZE);
-        validateField(validatedConfig, PostgresConnectorConfig.MAX_BATCH_SIZE, PostgresConnectorConfig.DEFAULT_MAX_BATCH_SIZE);
-        validateField(validatedConfig, PostgresConnectorConfig.SNAPSHOT_FETCH_SIZE, null);
-        validateField(validatedConfig, PostgresConnectorConfig.POLL_INTERVAL_MS, PostgresConnectorConfig.DEFAULT_POLL_INTERVAL_MILLIS);
-        validateField(validatedConfig, PostgresConnectorConfig.SSL_MODE, PostgresConnectorConfig.SecureConnectionMode.DISABLED);
-        validateField(validatedConfig, PostgresConnectorConfig.SSL_CLIENT_CERT, null);
-        validateField(validatedConfig, PostgresConnectorConfig.SSL_CLIENT_KEY, null);
-        validateField(validatedConfig, PostgresConnectorConfig.SSL_CLIENT_KEY_PASSWORD, null);
-        validateField(validatedConfig, PostgresConnectorConfig.SSL_ROOT_CERT, null);
-        validateField(validatedConfig, PostgresConnectorConfig.SCHEMA_WHITELIST, null);
-        validateField(validatedConfig, PostgresConnectorConfig.SCHEMA_BLACKLIST, null);
-        validateField(validatedConfig, PostgresConnectorConfig.TABLE_WHITELIST, null);
-        validateField(validatedConfig, PostgresConnectorConfig.TABLE_BLACKLIST, null);
-        validateField(validatedConfig, PostgresConnectorConfig.COLUMN_BLACKLIST, null);
-        validateField(validatedConfig, PostgresConnectorConfig.COLUMN_WHITELIST, null);
-        validateField(validatedConfig, PostgresConnectorConfig.MSG_KEY_COLUMNS, null);
-        validateField(validatedConfig, PostgresConnectorConfig.SNAPSHOT_MODE, SnapshotMode.INITIAL);
+        validateField(validatedConfig, HanaConnectorConfig.PLUGIN_NAME, LogicalDecoder.DECODERBUFS.getValue());
+        validateField(validatedConfig, HanaConnectorConfig.SLOT_NAME, ReplicationConnection.Builder.DEFAULT_SLOT_NAME);
+        validateField(validatedConfig, HanaConnectorConfig.DROP_SLOT_ON_STOP, Boolean.FALSE);
+        validateField(validatedConfig, HanaConnectorConfig.PORT, HanaConnectorConfig.DEFAULT_PORT);
+        validateField(validatedConfig, HanaConnectorConfig.MAX_QUEUE_SIZE, HanaConnectorConfig.DEFAULT_MAX_QUEUE_SIZE);
+        validateField(validatedConfig, HanaConnectorConfig.MAX_BATCH_SIZE, HanaConnectorConfig.DEFAULT_MAX_BATCH_SIZE);
+        validateField(validatedConfig, HanaConnectorConfig.SNAPSHOT_FETCH_SIZE, null);
+        validateField(validatedConfig, HanaConnectorConfig.POLL_INTERVAL_MS, HanaConnectorConfig.DEFAULT_POLL_INTERVAL_MILLIS);
+        validateField(validatedConfig, HanaConnectorConfig.SSL_MODE, HanaConnectorConfig.SecureConnectionMode.DISABLED);
+        validateField(validatedConfig, HanaConnectorConfig.SSL_CLIENT_CERT, null);
+        validateField(validatedConfig, HanaConnectorConfig.SSL_CLIENT_KEY, null);
+        validateField(validatedConfig, HanaConnectorConfig.SSL_CLIENT_KEY_PASSWORD, null);
+        validateField(validatedConfig, HanaConnectorConfig.SSL_ROOT_CERT, null);
+        validateField(validatedConfig, HanaConnectorConfig.SCHEMA_WHITELIST, null);
+        validateField(validatedConfig, HanaConnectorConfig.SCHEMA_BLACKLIST, null);
+        validateField(validatedConfig, HanaConnectorConfig.TABLE_WHITELIST, null);
+        validateField(validatedConfig, HanaConnectorConfig.TABLE_BLACKLIST, null);
+        validateField(validatedConfig, HanaConnectorConfig.COLUMN_BLACKLIST, null);
+        validateField(validatedConfig, HanaConnectorConfig.COLUMN_WHITELIST, null);
+        validateField(validatedConfig, HanaConnectorConfig.MSG_KEY_COLUMNS, null);
+        validateField(validatedConfig, HanaConnectorConfig.SNAPSHOT_MODE, SnapshotMode.INITIAL);
         validateField(validatedConfig, RelationalDatabaseConnectorConfig.SNAPSHOT_LOCK_TIMEOUT_MS,
                 RelationalDatabaseConnectorConfig.DEFAULT_SNAPSHOT_LOCK_TIMEOUT_MILLIS);
-        validateField(validatedConfig, PostgresConnectorConfig.TIME_PRECISION_MODE, TemporalPrecisionMode.ADAPTIVE);
-        validateField(validatedConfig, PostgresConnectorConfig.DECIMAL_HANDLING_MODE, PostgresConnectorConfig.DecimalHandlingMode.PRECISE);
-        validateField(validatedConfig, PostgresConnectorConfig.SSL_SOCKET_FACTORY, null);
-        validateField(validatedConfig, PostgresConnectorConfig.TCP_KEEPALIVE, true);
+        validateField(validatedConfig, HanaConnectorConfig.TIME_PRECISION_MODE, TemporalPrecisionMode.ADAPTIVE);
+        validateField(validatedConfig, HanaConnectorConfig.DECIMAL_HANDLING_MODE, PostgresConnectorConfig.DecimalHandlingMode.PRECISE);
+        validateField(validatedConfig, HanaConnectorConfig.SSL_SOCKET_FACTORY, null);
+        validateField(validatedConfig, HanaConnectorConfig.TCP_KEEPALIVE, true);
     }
 
     @Test
     public void shouldValidateReplicationSlotName() throws Exception {
         Configuration config = Configuration.create()
-                .with(PostgresConnectorConfig.SLOT_NAME, "xx-aa")
+                .with(HanaConnectorConfig.SLOT_NAME, "xx-aa")
                 .build();
         PostgresConnector connector = new PostgresConnector();
         Config validatedConfig = connector.validate(config.asMap());
 
-        assertConfigurationErrors(validatedConfig, PostgresConnectorConfig.SLOT_NAME, 1);
+        assertConfigurationErrors(validatedConfig, HanaConnectorConfig.SLOT_NAME, 1);
     }
 
     @Test
     public void shouldSupportSSLParameters() throws Exception {
         // the default docker image we're testing against doesn't use SSL, so check that the connector fails to start when
         // SSL is enabled
-        Configuration config = TestHelper.defaultConfig().with(PostgresConnectorConfig.SSL_MODE,
-                PostgresConnectorConfig.SecureConnectionMode.REQUIRED).build();
+        Configuration config = TestHelper.defaultConfig().with(HanaConnectorConfig.SSL_MODE,
+                HanaConnectorConfig.SecureConnectionMode.REQUIRED).build();
         start(PostgresConnector.class, config, (success, msg, error) -> {
             if (TestHelper.shouldSSLConnectionFail()) {
                 // we expect the task to fail at startup when we're printing the server info
@@ -231,8 +231,8 @@ public class PostgresConnectorIT extends AbstractConnectorTest {
     public void shouldProduceEventsWithInitialSnapshot() throws Exception {
         TestHelper.execute(SETUP_TABLES_STMT);
         Configuration.Builder configBuilder = TestHelper.defaultConfig()
-                .with(PostgresConnectorConfig.SNAPSHOT_MODE, SnapshotMode.INITIAL.getValue())
-                .with(PostgresConnectorConfig.DROP_SLOT_ON_STOP, Boolean.FALSE);
+                .with(HanaConnectorConfig.SNAPSHOT_MODE, SnapshotMode.INITIAL.getValue())
+                .with(HanaConnectorConfig.DROP_SLOT_ON_STOP, Boolean.FALSE);
         start(PostgresConnector.class, configBuilder.build());
         assertConnectorIsRunning();
 
@@ -252,7 +252,7 @@ public class PostgresConnectorIT extends AbstractConnectorTest {
 
         // start the connector back up and check that a new snapshot has not been performed (we're running initial only mode)
         // but the 2 records that we were inserted while we were down will be retrieved
-        start(PostgresConnector.class, configBuilder.with(PostgresConnectorConfig.DROP_SLOT_ON_STOP, Boolean.TRUE).build());
+        start(PostgresConnector.class, configBuilder.with(HanaConnectorConfig.DROP_SLOT_ON_STOP, Boolean.TRUE).build());
         assertConnectorIsRunning();
 
         assertRecordsAfterInsert(2, 3, 3);
@@ -326,10 +326,10 @@ public class PostgresConnectorIT extends AbstractConnectorTest {
             TestHelper.execute(INSERT_STMT);
         }
         Configuration.Builder configBuilder = TestHelper.defaultConfig()
-                .with(PostgresConnectorConfig.SNAPSHOT_MODE, SnapshotMode.INITIAL.getValue())
-                .with(PostgresConnectorConfig.MAX_QUEUE_SIZE, recordCount / 2)
-                .with(PostgresConnectorConfig.MAX_BATCH_SIZE, 10)
-                .with(PostgresConnectorConfig.SCHEMA_WHITELIST, "s1");
+                .with(HanaConnectorConfig.SNAPSHOT_MODE, SnapshotMode.INITIAL.getValue())
+                .with(HanaConnectorConfig.MAX_QUEUE_SIZE, recordCount / 2)
+                .with(HanaConnectorConfig.MAX_BATCH_SIZE, 10)
+                .with(HanaConnectorConfig.SCHEMA_WHITELIST, "s1");
         start(PostgresConnector.class, configBuilder.build());
         assertConnectorIsRunning();
 
@@ -347,11 +347,11 @@ public class PostgresConnectorIT extends AbstractConnectorTest {
         final String slotName = "pkcolumndef" + new Random().nextInt(100);
         TestHelper.create().dropReplicationSlot(slotName);
         try {
-            final PostgresConnectorConfig config = new PostgresConnectorConfig(TestHelper.defaultConfig()
-                    .with(PostgresConnectorConfig.INCLUDE_UNKNOWN_DATATYPES, Boolean.FALSE)
-                    .with(PostgresConnectorConfig.SCHEMA_WHITELIST, "changepk")
-                    .with(PostgresConnectorConfig.DROP_SLOT_ON_STOP, Boolean.FALSE)
-                    .with(PostgresConnectorConfig.SLOT_NAME, slotName)
+            final HanaConnectorConfig config = new HanaConnectorConfig(TestHelper.defaultConfig()
+                    .with(HanaConnectorConfig.INCLUDE_UNKNOWN_DATATYPES, Boolean.FALSE)
+                    .with(HanaConnectorConfig.SCHEMA_WHITELIST, "changepk")
+                    .with(HanaConnectorConfig.DROP_SLOT_ON_STOP, Boolean.FALSE)
+                    .with(HanaConnectorConfig.SLOT_NAME, slotName)
                     .build());
 
             final String newPkField = "newpk";
@@ -445,8 +445,8 @@ public class PostgresConnectorIT extends AbstractConnectorTest {
     public void shouldIgnoreEventsForDeletedTable() throws Exception {
         TestHelper.execute(SETUP_TABLES_STMT);
         Configuration.Builder configBuilder = TestHelper.defaultConfig()
-                .with(PostgresConnectorConfig.SNAPSHOT_MODE, SnapshotMode.INITIAL.getValue())
-                .with(PostgresConnectorConfig.DROP_SLOT_ON_STOP, Boolean.FALSE);
+                .with(HanaConnectorConfig.SNAPSHOT_MODE, SnapshotMode.INITIAL.getValue())
+                .with(HanaConnectorConfig.DROP_SLOT_ON_STOP, Boolean.FALSE);
         start(PostgresConnector.class, configBuilder.build());
         assertConnectorIsRunning();
         waitForSnapshotToBeCompleted();
@@ -467,7 +467,7 @@ public class PostgresConnectorIT extends AbstractConnectorTest {
         TestHelper.execute(INSERT_STMT);
         TestHelper.execute("DROP TABLE s1.a");
 
-        start(PostgresConnector.class, configBuilder.with(PostgresConnectorConfig.DROP_SLOT_ON_STOP, Boolean.TRUE).build());
+        start(PostgresConnector.class, configBuilder.with(HanaConnectorConfig.DROP_SLOT_ON_STOP, Boolean.TRUE).build());
         assertConnectorIsRunning();
         waitForStreamingRunning();
 
@@ -485,8 +485,8 @@ public class PostgresConnectorIT extends AbstractConnectorTest {
     public void shouldNotIgnoreEventsForDeletedTable() throws Exception {
         TestHelper.execute(SETUP_TABLES_STMT);
         Configuration.Builder configBuilder = TestHelper.defaultConfig()
-                .with(PostgresConnectorConfig.SNAPSHOT_MODE, SnapshotMode.INITIAL.getValue())
-                .with(PostgresConnectorConfig.DROP_SLOT_ON_STOP, Boolean.FALSE);
+                .with(HanaConnectorConfig.SNAPSHOT_MODE, SnapshotMode.INITIAL.getValue())
+                .with(HanaConnectorConfig.DROP_SLOT_ON_STOP, Boolean.FALSE);
         start(PostgresConnector.class, configBuilder.build());
         assertConnectorIsRunning();
         waitForSnapshotToBeCompleted();
@@ -507,7 +507,7 @@ public class PostgresConnectorIT extends AbstractConnectorTest {
         TestHelper.execute(INSERT_STMT);
         TestHelper.execute("DROP TABLE s1.a");
 
-        start(PostgresConnector.class, configBuilder.with(PostgresConnectorConfig.DROP_SLOT_ON_STOP, Boolean.TRUE).build());
+        start(PostgresConnector.class, configBuilder.with(HanaConnectorConfig.DROP_SLOT_ON_STOP, Boolean.TRUE).build());
         assertConnectorIsRunning();
         waitForStreamingRunning();
 
@@ -526,8 +526,8 @@ public class PostgresConnectorIT extends AbstractConnectorTest {
                 SETUP_TABLES_STMT +
                         "CREATE VIEW s1.myview AS SELECT * from s1.a;");
         Configuration.Builder configBuilder = TestHelper.defaultConfig()
-                .with(PostgresConnectorConfig.SNAPSHOT_MODE, SnapshotMode.INITIAL.getValue())
-                .with(PostgresConnectorConfig.DROP_SLOT_ON_STOP, Boolean.FALSE);
+                .with(HanaConnectorConfig.SNAPSHOT_MODE, SnapshotMode.INITIAL.getValue())
+                .with(HanaConnectorConfig.DROP_SLOT_ON_STOP, Boolean.FALSE);
         start(PostgresConnector.class, configBuilder.build());
         assertConnectorIsRunning();
         waitForSnapshotToBeCompleted();
@@ -549,7 +549,7 @@ public class PostgresConnectorIT extends AbstractConnectorTest {
 
         // start the connector back up and check that a new snapshot has not been performed (we're running initial only mode)
         // but the 2 records that we were inserted while we were down will be retrieved
-        start(PostgresConnector.class, configBuilder.with(PostgresConnectorConfig.DROP_SLOT_ON_STOP, Boolean.TRUE).build());
+        start(PostgresConnector.class, configBuilder.with(HanaConnectorConfig.DROP_SLOT_ON_STOP, Boolean.TRUE).build());
         assertConnectorIsRunning();
         waitForStreamingRunning();
 
@@ -564,9 +564,9 @@ public class PostgresConnectorIT extends AbstractConnectorTest {
     public void shouldExecuteOnConnectStatements() throws Exception {
         TestHelper.execute(SETUP_TABLES_STMT);
         Configuration.Builder configBuilder = TestHelper.defaultConfig()
-                .with(PostgresConnectorConfig.SNAPSHOT_MODE, SnapshotMode.INITIAL.getValue())
-                .with(PostgresConnectorConfig.ON_CONNECT_STATEMENTS, "INSERT INTO s1.a (aa) VALUES (2); INSERT INTO s2.a (aa, bb) VALUES (2, 'hello;; world');")
-                .with(PostgresConnectorConfig.DROP_SLOT_ON_STOP, Boolean.FALSE);
+                .with(HanaConnectorConfig.SNAPSHOT_MODE, SnapshotMode.INITIAL.getValue())
+                .with(HanaConnectorConfig.ON_CONNECT_STATEMENTS, "INSERT INTO s1.a (aa) VALUES (2); INSERT INTO s2.a (aa, bb) VALUES (2, 'hello;; world');")
+                .with(HanaConnectorConfig.DROP_SLOT_ON_STOP, Boolean.FALSE);
         start(PostgresConnector.class, configBuilder.build());
         assertConnectorIsRunning();
 
@@ -589,8 +589,8 @@ public class PostgresConnectorIT extends AbstractConnectorTest {
         TestHelper.dropDefaultReplicationSlot();
         TestHelper.execute(SETUP_TABLES_STMT);
         Configuration config = TestHelper.defaultConfig()
-                .with(PostgresConnectorConfig.SNAPSHOT_MODE, SnapshotMode.NEVER.getValue())
-                .with(PostgresConnectorConfig.DROP_SLOT_ON_STOP, Boolean.TRUE)
+                .with(HanaConnectorConfig.SNAPSHOT_MODE, SnapshotMode.NEVER.getValue())
+                .with(HanaConnectorConfig.DROP_SLOT_ON_STOP, Boolean.TRUE)
                 .build();
         start(PostgresConnector.class, config);
         assertConnectorIsRunning();
@@ -610,8 +610,8 @@ public class PostgresConnectorIT extends AbstractConnectorTest {
         Testing.Print.enable();
         TestHelper.execute(SETUP_TABLES_STMT);
         Configuration config = TestHelper.defaultConfig()
-                .with(PostgresConnectorConfig.SNAPSHOT_MODE, SnapshotMode.INITIAL_ONLY.getValue())
-                .with(PostgresConnectorConfig.DROP_SLOT_ON_STOP, Boolean.TRUE)
+                .with(HanaConnectorConfig.SNAPSHOT_MODE, SnapshotMode.INITIAL_ONLY.getValue())
+                .with(HanaConnectorConfig.DROP_SLOT_ON_STOP, Boolean.TRUE)
                 .build();
         start(PostgresConnector.class, config);
         assertConnectorIsRunning();
@@ -630,8 +630,8 @@ public class PostgresConnectorIT extends AbstractConnectorTest {
     public void shouldProduceEventsWhenAlwaysTakingSnapshots() throws InterruptedException {
         TestHelper.execute(SETUP_TABLES_STMT);
         Configuration.Builder configBuilder = TestHelper.defaultConfig()
-                .with(PostgresConnectorConfig.SNAPSHOT_MODE, SnapshotMode.ALWAYS.getValue())
-                .with(PostgresConnectorConfig.DROP_SLOT_ON_STOP, Boolean.FALSE);
+                .with(HanaConnectorConfig.SNAPSHOT_MODE, SnapshotMode.ALWAYS.getValue())
+                .with(HanaConnectorConfig.DROP_SLOT_ON_STOP, Boolean.FALSE);
         start(PostgresConnector.class, configBuilder.build());
         assertConnectorIsRunning();
 
@@ -646,7 +646,7 @@ public class PostgresConnectorIT extends AbstractConnectorTest {
         assertNoRecordsToConsume();
 
         // start the connector back up and check that a new snapshot has been performed
-        start(PostgresConnector.class, configBuilder.with(PostgresConnectorConfig.DROP_SLOT_ON_STOP, Boolean.TRUE).build());
+        start(PostgresConnector.class, configBuilder.with(HanaConnectorConfig.DROP_SLOT_ON_STOP, Boolean.TRUE).build());
         assertConnectorIsRunning();
 
         assertRecordsFromSnapshot(4, 1, 2, 1, 2);
@@ -662,8 +662,8 @@ public class PostgresConnectorIT extends AbstractConnectorTest {
         String setupStmt = SETUP_TABLES_STMT + INSERT_STMT;
         TestHelper.execute(setupStmt);
         Configuration.Builder configBuilder = TestHelper.defaultConfig()
-                .with(PostgresConnectorConfig.SNAPSHOT_MODE, SnapshotMode.INITIAL.getValue())
-                .with(PostgresConnectorConfig.DROP_SLOT_ON_STOP, Boolean.FALSE);
+                .with(HanaConnectorConfig.SNAPSHOT_MODE, SnapshotMode.INITIAL.getValue())
+                .with(HanaConnectorConfig.DROP_SLOT_ON_STOP, Boolean.FALSE);
         EmbeddedEngine.CompletionCallback completionCallback = (success, message, error) -> {
             if (error != null) {
                 latch.countDown();
@@ -687,7 +687,7 @@ public class PostgresConnectorIT extends AbstractConnectorTest {
         // make sure there are no records to consume
         assertNoRecordsToConsume();
         // start the connector back up and check that it took another full snapshot since previously it was stopped midstream
-        start(PostgresConnector.class, configBuilder.with(PostgresConnectorConfig.DROP_SLOT_ON_STOP, Boolean.TRUE).build());
+        start(PostgresConnector.class, configBuilder.with(HanaConnectorConfig.DROP_SLOT_ON_STOP, Boolean.TRUE).build());
         assertConnectorIsRunning();
 
         // check that the snapshot was recreated
@@ -710,8 +710,8 @@ public class PostgresConnectorIT extends AbstractConnectorTest {
         String setupStmt = SETUP_TABLES_STMT;
         TestHelper.execute(setupStmt);
         Configuration config = TestHelper.defaultConfig()
-                .with(PostgresConnectorConfig.SNAPSHOT_MODE, SnapshotMode.INITIAL.getValue())
-                .with(PostgresConnectorConfig.DROP_SLOT_ON_STOP, Boolean.FALSE)
+                .with(HanaConnectorConfig.SNAPSHOT_MODE, SnapshotMode.INITIAL.getValue())
+                .with(HanaConnectorConfig.DROP_SLOT_ON_STOP, Boolean.FALSE)
                 .build();
 
         start(PostgresConnector.class, config);
@@ -740,11 +740,11 @@ public class PostgresConnectorIT extends AbstractConnectorTest {
                 "INSERT INTO s2.a (aa) VALUES (5);";
         TestHelper.execute(setupStmt);
         Configuration.Builder configBuilder = TestHelper.defaultConfig()
-                .with(PostgresConnectorConfig.SNAPSHOT_MODE, SnapshotMode.INITIAL.getValue())
-                .with(PostgresConnectorConfig.DROP_SLOT_ON_STOP, Boolean.TRUE)
-                .with(PostgresConnectorConfig.SCHEMA_BLACKLIST, "s2")
-                .with(PostgresConnectorConfig.TABLE_BLACKLIST, ".+b")
-                .with(PostgresConnectorConfig.COLUMN_BLACKLIST, ".+bb");
+                .with(HanaConnectorConfig.SNAPSHOT_MODE, SnapshotMode.INITIAL.getValue())
+                .with(HanaConnectorConfig.DROP_SLOT_ON_STOP, Boolean.TRUE)
+                .with(HanaConnectorConfig.SCHEMA_BLACKLIST, "s2")
+                .with(HanaConnectorConfig.TABLE_BLACKLIST, ".+b")
+                .with(HanaConnectorConfig.COLUMN_BLACKLIST, ".+bb");
 
         start(PostgresConnector.class, configBuilder.build());
         assertConnectorIsRunning();
@@ -779,9 +779,9 @@ public class PostgresConnectorIT extends AbstractConnectorTest {
 
         TestHelper.execute(setupStmt);
         Configuration.Builder configBuilder = TestHelper.defaultConfig()
-                .with(PostgresConnectorConfig.DROP_SLOT_ON_STOP, Boolean.TRUE)
-                .with(PostgresConnectorConfig.MASK_COLUMN(5), ".+cc")
-                .with(PostgresConnectorConfig.COLUMN_WHITELIST, ".+aa,.+cc");
+                .with(HanaConnectorConfig.DROP_SLOT_ON_STOP, Boolean.TRUE)
+                .with(HanaConnectorConfig.MASK_COLUMN(5), ".+cc")
+                .with(HanaConnectorConfig.COLUMN_WHITELIST, ".+aa,.+cc");
 
         start(PostgresConnector.class, configBuilder.build());
         assertConnectorIsRunning();
@@ -807,10 +807,10 @@ public class PostgresConnectorIT extends AbstractConnectorTest {
 
         TestHelper.execute(setupStmt);
         Configuration.Builder configBuilder = TestHelper.defaultConfig()
-                .with(PostgresConnectorConfig.SNAPSHOT_MODE, SnapshotMode.INITIAL.getValue())
-                .with(PostgresConnectorConfig.DROP_SLOT_ON_STOP, Boolean.TRUE)
-                .with(PostgresConnectorConfig.SCHEMA_WHITELIST, "s1")
-                .with(PostgresConnectorConfig.TABLE_WHITELIST, tableWhitelistWithWhitespace);
+                .with(HanaConnectorConfig.SNAPSHOT_MODE, SnapshotMode.INITIAL.getValue())
+                .with(HanaConnectorConfig.DROP_SLOT_ON_STOP, Boolean.TRUE)
+                .with(HanaConnectorConfig.SCHEMA_WHITELIST, "s1")
+                .with(HanaConnectorConfig.TABLE_WHITELIST, tableWhitelistWithWhitespace);
 
         start(PostgresConnector.class, configBuilder.build());
         assertConnectorIsRunning();
@@ -836,10 +836,10 @@ public class PostgresConnectorIT extends AbstractConnectorTest {
 
         TestHelper.execute(setupStmt);
         Configuration.Builder configBuilder = TestHelper.defaultConfig()
-                .with(PostgresConnectorConfig.SNAPSHOT_MODE, SnapshotMode.INITIAL.getValue())
-                .with(PostgresConnectorConfig.DROP_SLOT_ON_STOP, Boolean.TRUE)
-                .with(PostgresConnectorConfig.SCHEMA_WHITELIST, "s1")
-                .with(PostgresConnectorConfig.TABLE_WHITELIST, "s1\\.dbz_878_some\\|test@data");
+                .with(HanaConnectorConfig.SNAPSHOT_MODE, SnapshotMode.INITIAL.getValue())
+                .with(HanaConnectorConfig.DROP_SLOT_ON_STOP, Boolean.TRUE)
+                .with(HanaConnectorConfig.SCHEMA_WHITELIST, "s1")
+                .with(HanaConnectorConfig.TABLE_WHITELIST, "s1\\.dbz_878_some\\|test@data");
 
         start(PostgresConnector.class, configBuilder.build());
         assertConnectorIsRunning();
@@ -863,9 +863,9 @@ public class PostgresConnectorIT extends AbstractConnectorTest {
                 "CREATE SCHEMA s1; " +
                 "CREATE TABLE s1.a (pk SERIAL, aa integer, PRIMARY KEY(pk));";
         Configuration config = TestHelper.defaultConfig()
-                .with(PostgresConnectorConfig.SNAPSHOT_MODE, SnapshotMode.NEVER.getValue())
-                .with(PostgresConnectorConfig.DROP_SLOT_ON_STOP, Boolean.TRUE)
-                .with(PostgresConnectorConfig.TABLE_WHITELIST, "s1.a")
+                .with(HanaConnectorConfig.SNAPSHOT_MODE, SnapshotMode.NEVER.getValue())
+                .with(HanaConnectorConfig.DROP_SLOT_ON_STOP, Boolean.TRUE)
+                .with(HanaConnectorConfig.TABLE_WHITELIST, "s1.a")
                 .with(Heartbeat.HEARTBEAT_INTERVAL, 10)
                 .build();
         start(PostgresConnector.class, config);
@@ -884,9 +884,9 @@ public class PostgresConnectorIT extends AbstractConnectorTest {
         final int recordCount = 10;
         TestHelper.execute(SETUP_TABLES_STMT);
         Configuration config = TestHelper.defaultConfig()
-                .with(PostgresConnectorConfig.SNAPSHOT_MODE, SnapshotMode.NEVER.getValue())
-                .with(PostgresConnectorConfig.DROP_SLOT_ON_STOP, Boolean.TRUE)
-                .with(PostgresConnectorConfig.TABLE_WHITELIST, "s1.a")
+                .with(HanaConnectorConfig.SNAPSHOT_MODE, SnapshotMode.NEVER.getValue())
+                .with(HanaConnectorConfig.DROP_SLOT_ON_STOP, Boolean.TRUE)
+                .with(HanaConnectorConfig.TABLE_WHITELIST, "s1.a")
                 .build();
         start(PostgresConnector.class, config);
         assertConnectorIsRunning();
@@ -895,7 +895,7 @@ public class PostgresConnectorIT extends AbstractConnectorTest {
         assertNoRecordsToConsume();
 
         final Set<String> flushLsn = new HashSet<>();
-        try (final PostgresConnection connection = TestHelper.create()) {
+        try (final HanaConnection connection = TestHelper.create()) {
             flushLsn.add(getConfirmedFlushLsn(connection));
             for (int i = 2; i <= recordCount + 2; i++) {
                 TestHelper.execute(INSERT_STMT);
@@ -927,9 +927,9 @@ public class PostgresConnectorIT extends AbstractConnectorTest {
         final int recordCount = 10;
         TestHelper.execute(SETUP_TABLES_STMT);
         Configuration config = TestHelper.defaultConfig()
-                .with(PostgresConnectorConfig.SNAPSHOT_MODE, SnapshotMode.NEVER.getValue())
-                .with(PostgresConnectorConfig.DROP_SLOT_ON_STOP, Boolean.TRUE)
-                .with(PostgresConnectorConfig.TABLE_WHITELIST, "s1.a")
+                .with(HanaConnectorConfig.SNAPSHOT_MODE, SnapshotMode.NEVER.getValue())
+                .with(HanaConnectorConfig.DROP_SLOT_ON_STOP, Boolean.TRUE)
+                .with(HanaConnectorConfig.TABLE_WHITELIST, "s1.a")
                 .with(Heartbeat.HEARTBEAT_INTERVAL, 1_000)
                 .build();
         start(PostgresConnector.class, config);
@@ -947,7 +947,7 @@ public class PostgresConnectorIT extends AbstractConnectorTest {
             return topicRecords != null && topicRecords.size() == 1;
         });
 
-        try (final PostgresConnection connection = TestHelper.create()) {
+        try (final HanaConnection connection = TestHelper.create()) {
             flushLsn.add(getConfirmedFlushLsn(connection));
             for (int i = 0; i < recordCount; i++) {
                 TestHelper.execute(DDL_STATEMENT);
@@ -971,9 +971,9 @@ public class PostgresConnectorIT extends AbstractConnectorTest {
     public void shouldAllowForCustomSnapshot() throws InterruptedException {
         TestHelper.execute(SETUP_TABLES_STMT);
         Configuration config = TestHelper.defaultConfig()
-                .with(PostgresConnectorConfig.SNAPSHOT_MODE, SnapshotMode.CUSTOM.getValue())
-                .with(PostgresConnectorConfig.SNAPSHOT_MODE_CLASS, CustomTestSnapshot.class.getName())
-                .with(PostgresConnectorConfig.DROP_SLOT_ON_STOP, Boolean.FALSE)
+                .with(HanaConnectorConfig.SNAPSHOT_MODE, SnapshotMode.CUSTOM.getValue())
+                .with(HanaConnectorConfig.SNAPSHOT_MODE_CLASS, CustomTestSnapshot.class.getName())
+                .with(HanaConnectorConfig.DROP_SLOT_ON_STOP, Boolean.FALSE)
                 .build();
         start(PostgresConnector.class, config);
         assertConnectorIsRunning();
@@ -1002,9 +1002,9 @@ public class PostgresConnectorIT extends AbstractConnectorTest {
         stopConnector();
 
         config = TestHelper.defaultConfig()
-                .with(PostgresConnectorConfig.SNAPSHOT_MODE, SnapshotMode.CUSTOM.getValue())
-                .with(PostgresConnectorConfig.SNAPSHOT_MODE_CLASS, CustomTestSnapshot.class.getName())
-                .with(PostgresConnectorConfig.DROP_SLOT_ON_STOP, Boolean.TRUE)
+                .with(HanaConnectorConfig.SNAPSHOT_MODE, SnapshotMode.CUSTOM.getValue())
+                .with(HanaConnectorConfig.SNAPSHOT_MODE_CLASS, CustomTestSnapshot.class.getName())
+                .with(HanaConnectorConfig.DROP_SLOT_ON_STOP, Boolean.TRUE)
                 .build();
         start(PostgresConnector.class, config);
         assertConnectorIsRunning();
@@ -1030,8 +1030,8 @@ public class PostgresConnectorIT extends AbstractConnectorTest {
         // the replication slot was created.
         TestHelper.execute(SETUP_TABLES_STMT);
         Configuration config = TestHelper.defaultConfig()
-                .with(PostgresConnectorConfig.SNAPSHOT_MODE, SnapshotMode.EXPORTED.getValue())
-                .with(PostgresConnectorConfig.DROP_SLOT_ON_STOP, Boolean.FALSE)
+                .with(HanaConnectorConfig.SNAPSHOT_MODE, SnapshotMode.EXPORTED.getValue())
+                .with(HanaConnectorConfig.DROP_SLOT_ON_STOP, Boolean.FALSE)
                 .build();
         start(PostgresConnector.class, config);
         assertConnectorIsRunning();
@@ -1064,8 +1064,8 @@ public class PostgresConnectorIT extends AbstractConnectorTest {
         stopConnector();
 
         config = TestHelper.defaultConfig()
-                .with(PostgresConnectorConfig.SNAPSHOT_MODE, SnapshotMode.EXPORTED.getValue())
-                .with(PostgresConnectorConfig.DROP_SLOT_ON_STOP, Boolean.TRUE)
+                .with(HanaConnectorConfig.SNAPSHOT_MODE, SnapshotMode.EXPORTED.getValue())
+                .with(HanaConnectorConfig.DROP_SLOT_ON_STOP, Boolean.TRUE)
                 .build();
         start(PostgresConnector.class, config);
         assertConnectorIsRunning();
@@ -1092,8 +1092,8 @@ public class PostgresConnectorIT extends AbstractConnectorTest {
 
         TestHelper.execute(SETUP_TABLES_STMT);
         Configuration config = TestHelper.defaultConfig()
-                .with(PostgresConnectorConfig.SNAPSHOT_MODE, SnapshotMode.INITIAL_ONLY.getValue())
-                .with(PostgresConnectorConfig.DROP_SLOT_ON_STOP, Boolean.FALSE)
+                .with(HanaConnectorConfig.SNAPSHOT_MODE, SnapshotMode.INITIAL_ONLY.getValue())
+                .with(HanaConnectorConfig.DROP_SLOT_ON_STOP, Boolean.FALSE)
                 .build();
         start(PostgresConnector.class, config);
         assertConnectorIsRunning();
@@ -1123,8 +1123,8 @@ public class PostgresConnectorIT extends AbstractConnectorTest {
         // Restart the connector again with initial-only
         // No snapshot should be produced and no records generated
         config = TestHelper.defaultConfig()
-                .with(PostgresConnectorConfig.SNAPSHOT_MODE, SnapshotMode.INITIAL_ONLY.getValue())
-                .with(PostgresConnectorConfig.DROP_SLOT_ON_STOP, Boolean.TRUE)
+                .with(HanaConnectorConfig.SNAPSHOT_MODE, SnapshotMode.INITIAL_ONLY.getValue())
+                .with(HanaConnectorConfig.DROP_SLOT_ON_STOP, Boolean.TRUE)
                 .build();
         start(PostgresConnector.class, config);
         assertConnectorIsRunning();
@@ -1133,7 +1133,7 @@ public class PostgresConnectorIT extends AbstractConnectorTest {
         stopConnector(value -> assertThat(logInterceptor.containsMessage("Previous initial snapshot completed, no snapshot will be performed")).isTrue());
     }
 
-    private String getConfirmedFlushLsn(PostgresConnection connection) throws SQLException {
+    private String getConfirmedFlushLsn(HanaConnection connection) throws SQLException {
         return connection.prepareQueryAndMap(
                 "select * from pg_replication_slots where slot_name = ? and database = ? and plugin = ?", statement -> {
                     statement.setString(1, ReplicationConnection.Builder.DEFAULT_SLOT_NAME);
@@ -1168,8 +1168,8 @@ public class PostgresConnectorIT extends AbstractConnectorTest {
         TestHelper.dropAllSchemas();
         TestHelper.executeDDL("postgres_create_tables.ddl");
         Configuration.Builder configBuilder = TestHelper.defaultConfig()
-                .with(PostgresConnectorConfig.SNAPSHOT_MODE, SnapshotMode.NEVER.getValue())
-                .with(PostgresConnectorConfig.DROP_SLOT_ON_STOP, Boolean.TRUE);
+                .with(HanaConnectorConfig.SNAPSHOT_MODE, SnapshotMode.NEVER.getValue())
+                .with(HanaConnectorConfig.DROP_SLOT_ON_STOP, Boolean.TRUE);
         start(PostgresConnector.class, configBuilder.build());
         assertConnectorIsRunning();
         final long recordsCount = 1000000;
@@ -1203,8 +1203,8 @@ public class PostgresConnectorIT extends AbstractConnectorTest {
         TestHelper.dropAllSchemas();
         TestHelper.executeDDL("postgres_create_tables.ddl");
         Configuration.Builder configBuilder = TestHelper.defaultConfig()
-                .with(PostgresConnectorConfig.SNAPSHOT_MODE, SnapshotMode.INITIAL_ONLY.getValue())
-                .with(PostgresConnectorConfig.DROP_SLOT_ON_STOP, Boolean.TRUE);
+                .with(HanaConnectorConfig.SNAPSHOT_MODE, SnapshotMode.INITIAL_ONLY.getValue())
+                .with(HanaConnectorConfig.DROP_SLOT_ON_STOP, Boolean.TRUE);
         final long recordsCount = 1000000;
         final int batchSize = 1000;
 
@@ -1230,8 +1230,8 @@ public class PostgresConnectorIT extends AbstractConnectorTest {
         TestHelper.executeDDL("postgres_create_tables.ddl");
 
         Configuration.Builder configBuilder = TestHelper.defaultConfig()
-                .with(PostgresConnectorConfig.SNAPSHOT_MODE, SnapshotMode.INITIAL_ONLY.getValue())
-                .with(PostgresConnectorConfig.TABLE_WHITELIST, "my_products");
+                .with(HanaConnectorConfig.SNAPSHOT_MODE, SnapshotMode.INITIAL_ONLY.getValue())
+                .with(HanaConnectorConfig.TABLE_WHITELIST, "my_products");
 
         start(PostgresConnector.class, configBuilder.build());
         assertConnectorIsRunning();
@@ -1250,7 +1250,7 @@ public class PostgresConnectorIT extends AbstractConnectorTest {
         TestHelper.executeDDL("postgres_create_tables.ddl");
 
         Configuration.Builder configBuilder = TestHelper.defaultConfig()
-                .with(PostgresConnectorConfig.SNAPSHOT_MODE, SnapshotMode.INITIAL_ONLY.getValue());
+                .with(HanaConnectorConfig.SNAPSHOT_MODE, SnapshotMode.INITIAL_ONLY.getValue());
 
         start(PostgresConnector.class, configBuilder.build());
         assertConnectorIsRunning();
@@ -1271,7 +1271,7 @@ public class PostgresConnectorIT extends AbstractConnectorTest {
         TestHelper.executeDDL("postgres_create_tables.ddl");
 
         Configuration.Builder configBuilder = TestHelper.defaultConfig()
-                .with(PostgresConnectorConfig.PUBLICATION_NAME, "cdc");
+                .with(HanaConnectorConfig.PUBLICATION_NAME, "cdc");
 
         start(PostgresConnector.class, configBuilder.build());
         assertConnectorIsRunning();
@@ -1286,10 +1286,10 @@ public class PostgresConnectorIT extends AbstractConnectorTest {
     public void shouldRewriteIdentityKey() throws InterruptedException {
         TestHelper.execute(SETUP_TABLES_STMT);
         Configuration.Builder configBuilder = TestHelper.defaultConfig()
-                .with(PostgresConnectorConfig.SNAPSHOT_MODE, SnapshotMode.INITIAL.getValue())
-                .with(PostgresConnectorConfig.SCHEMA_WHITELIST, "s1,s2")
+                .with(HanaConnectorConfig.SNAPSHOT_MODE, SnapshotMode.INITIAL.getValue())
+                .with(HanaConnectorConfig.SCHEMA_WHITELIST, "s1,s2")
                 // rewrite key from table 'a': from {pk} to {pk, aa}
-                .with(PostgresConnectorConfig.MSG_KEY_COLUMNS, "(.*)1.a:pk,aa");
+                .with(HanaConnectorConfig.MSG_KEY_COLUMNS, "(.*)1.a:pk,aa");
 
         start(PostgresConnector.class, configBuilder.build());
         waitForSnapshotToBeCompleted();
@@ -1317,7 +1317,7 @@ public class PostgresConnectorIT extends AbstractConnectorTest {
 
         TestHelper.execute(SETUP_TABLES_STMT);
         TestHelper.execute(INSERT_STMT);
-        Configuration config = TestHelper.defaultConfig().with(PostgresConnectorConfig.SCHEMA_WHITELIST, "s2").build();
+        Configuration config = TestHelper.defaultConfig().with(HanaConnectorConfig.SCHEMA_WHITELIST, "s2").build();
 
         // Start connector, verify that it does not log no monitored tables warning
         start(PostgresConnector.class, config);
@@ -1345,8 +1345,8 @@ public class PostgresConnectorIT extends AbstractConnectorTest {
         TestHelper.executeDDL("postgres_create_tables.ddl");
 
         Configuration config = TestHelper.defaultConfig()
-                .with(PostgresConnectorConfig.SNAPSHOT_MODE, SnapshotMode.NEVER)
-                .with(PostgresConnectorConfig.DROP_SLOT_ON_STOP, false)
+                .with(HanaConnectorConfig.SNAPSHOT_MODE, SnapshotMode.NEVER)
+                .with(HanaConnectorConfig.DROP_SLOT_ON_STOP, false)
                 .build();
 
         // Start connector with no snapshot; by default replication slot and publication should be created
@@ -1380,7 +1380,7 @@ public class PostgresConnectorIT extends AbstractConnectorTest {
     public void shouldConsumeEventsWithMaskedColumns() throws Exception {
         TestHelper.execute(SETUP_TABLES_STMT);
         Configuration.Builder configBuilder = TestHelper.defaultConfig()
-                .with(PostgresConnectorConfig.MASK_COLUMN(5), "s2.a.bb");
+                .with(HanaConnectorConfig.MASK_COLUMN(5), "s2.a.bb");
         start(PostgresConnector.class, configBuilder.build());
         assertConnectorIsRunning();
 
@@ -1524,9 +1524,9 @@ public class PostgresConnectorIT extends AbstractConnectorTest {
     public void shouldOutputRecordsInCloudEventsFormat() throws Exception {
         TestHelper.execute(SETUP_TABLES_STMT);
         Configuration.Builder configBuilder = TestHelper.defaultConfig()
-                .with(PostgresConnectorConfig.SNAPSHOT_MODE, SnapshotMode.INITIAL.getValue())
+                .with(HanaConnectorConfig.SNAPSHOT_MODE, SnapshotMode.INITIAL.getValue())
                 .with(CommonConnectorConfig.PROVIDE_TRANSACTION_METADATA, true)
-                .with(PostgresConnectorConfig.DROP_SLOT_ON_STOP, Boolean.TRUE);
+                .with(HanaConnectorConfig.DROP_SLOT_ON_STOP, Boolean.TRUE);
 
         start(PostgresConnector.class, configBuilder.build());
         assertConnectorIsRunning();

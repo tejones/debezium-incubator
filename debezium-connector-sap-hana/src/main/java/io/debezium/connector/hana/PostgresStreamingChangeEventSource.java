@@ -17,7 +17,7 @@ import org.postgresql.replication.LogSequenceNumber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.debezium.connector.hana.connection.PostgresConnection;
+import io.debezium.connector.hana.connection.HanaConnection;
 import io.debezium.connector.hana.connection.ReplicationConnection;
 import io.debezium.connector.hana.connection.ReplicationMessage.Operation;
 import io.debezium.connector.hana.connection.ReplicationStream;
@@ -48,13 +48,13 @@ public class PostgresStreamingChangeEventSource implements StreamingChangeEventS
     // We thus try to read the message multiple times before we make poll pause
     private static final int THROTTLE_NO_MESSAGE_BEFORE_PAUSE = 5;
 
-    private final PostgresConnection connection;
+    private final HanaConnection connection;
     private final EventDispatcher<TableId> dispatcher;
     private final ErrorHandler errorHandler;
     private final Clock clock;
-    private final PostgresSchema schema;
+    private final HanaSchema schema;
     private final PostgresOffsetContext offsetContext;
-    private final PostgresConnectorConfig connectorConfig;
+    private final HanaConnectorConfig connectorConfig;
     private final PostgresTaskContext taskContext;
     private final ReplicationConnection replicationConnection;
     private final AtomicReference<ReplicationStream> replicationStream = new AtomicReference<>();
@@ -69,9 +69,9 @@ public class PostgresStreamingChangeEventSource implements StreamingChangeEventS
     private long numberOfEventsSinceLastEventSentOrWalGrowingWarning = 0;
     private Long lastCompletelyProcessedLsn;
 
-    public PostgresStreamingChangeEventSource(PostgresConnectorConfig connectorConfig, Snapshotter snapshotter, PostgresOffsetContext offsetContext,
-                                              PostgresConnection connection, EventDispatcher<TableId> dispatcher, ErrorHandler errorHandler, Clock clock,
-                                              PostgresSchema schema, PostgresTaskContext taskContext, ReplicationConnection replicationConnection) {
+    public PostgresStreamingChangeEventSource(HanaConnectorConfig connectorConfig, Snapshotter snapshotter, PostgresOffsetContext offsetContext,
+                                              HanaConnection connection, EventDispatcher<TableId> dispatcher, ErrorHandler errorHandler, Clock clock,
+                                              HanaSchema schema, PostgresTaskContext taskContext, ReplicationConnection replicationConnection) {
         this.connectorConfig = connectorConfig;
         this.connection = connection;
         this.dispatcher = dispatcher;
@@ -156,7 +156,7 @@ public class PostgresStreamingChangeEventSource implements StreamingChangeEventS
                     else {
                         TableId tableId = null;
                         if (message.getOperation() != Operation.NOOP) {
-                            tableId = PostgresSchema.parse(message.getTable());
+                            tableId = HanaSchema.parse(message.getTable());
                             Objects.requireNonNull(tableId);
                         }
 

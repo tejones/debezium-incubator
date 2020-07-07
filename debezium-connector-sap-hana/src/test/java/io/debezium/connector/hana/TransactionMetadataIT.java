@@ -23,7 +23,7 @@ import org.junit.Test;
 import org.junit.rules.TestRule;
 
 import io.debezium.config.Configuration;
-import io.debezium.connector.hana.PostgresConnectorConfig.SnapshotMode;
+import io.debezium.connector.hana.HanaConnectorConfig.SnapshotMode;
 import io.debezium.connector.hana.junit.SkipTestDependingOnDecoderPluginNameRule;
 import io.debezium.embedded.AbstractConnectorTest;
 import io.debezium.util.Collect;
@@ -67,9 +67,9 @@ public class TransactionMetadataIT extends AbstractConnectorTest {
         TestHelper.dropDefaultReplicationSlot();
         TestHelper.execute(SETUP_TABLES_STMT);
         Configuration config = TestHelper.defaultConfig()
-                .with(PostgresConnectorConfig.SNAPSHOT_MODE, SnapshotMode.NEVER.getValue())
-                .with(PostgresConnectorConfig.DROP_SLOT_ON_STOP, Boolean.TRUE)
-                .with(PostgresConnectorConfig.PROVIDE_TRANSACTION_METADATA, true)
+                .with(HanaConnectorConfig.SNAPSHOT_MODE, SnapshotMode.NEVER.getValue())
+                .with(HanaConnectorConfig.DROP_SLOT_ON_STOP, Boolean.TRUE)
+                .with(HanaConnectorConfig.PROVIDE_TRANSACTION_METADATA, true)
                 .build();
         start(PostgresConnector.class, config);
         assertConnectorIsRunning();

@@ -5,7 +5,7 @@
  */
 package io.debezium.connector.hana.snapshot;
 
-import io.debezium.connector.hana.PostgresConnectorConfig;
+import io.debezium.connector.hana.HanaConnectorConfig;
 import io.debezium.connector.hana.spi.OffsetState;
 import io.debezium.connector.hana.spi.SlotState;
 import io.debezium.connector.hana.spi.Snapshotter;
@@ -19,7 +19,7 @@ public class SnapshotterWrapper {
     private final Snapshotter snapshotter;
     private final SlotState slotState;
 
-    public SnapshotterWrapper(Snapshotter snapshotter, PostgresConnectorConfig config, OffsetState offsetState, SlotState slotState) {
+    public SnapshotterWrapper(Snapshotter snapshotter, HanaConnectorConfig config, OffsetState offsetState, SlotState slotState) {
         this.snapshotter = snapshotter;
         this.slotState = slotState;
         this.snapshotter.init(config, offsetState, slotState);

@@ -21,7 +21,7 @@ import io.debezium.config.Configuration;
 import io.debezium.config.Field;
 import io.debezium.connector.base.ChangeEventQueue;
 import io.debezium.connector.common.BaseSourceTask;
-import io.debezium.connector.hana.connection.PostgresConnection;
+import io.debezium.connector.hana.connection.HanaConnection;
 import io.debezium.connector.hana.connection.ReplicationConnection;
 import io.debezium.connector.hana.spi.SlotCreationResult;
 import io.debezium.connector.hana.spi.SlotState;
@@ -39,38 +39,38 @@ import io.debezium.util.LoggingContext;
 import io.debezium.util.Metronome;
 
 /**
- * Kafka connect source task which uses Postgres logical decoding over a streaming replication connection to process DB changes.
+ * Kafka connect source task which uses Hana logical decoding over a streaming replication connection to process DB changes.
  *
- * @author Horia Chiorean (hchiorea@redhat.com)
+ * @author Joao Tavares
  */
-public class PostgresConnectorTask extends BaseSourceTask {
+public class HanaConnectorTask extends BaseSourceTask {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(PostgresConnectorTask.class);
-    private static final String CONTEXT_NAME = "postgres-connector-task";
+    private static final Logger LOGGER = LoggerFactory.getLogger(HanaConnectorTask.class);
+    private static final String CONTEXT_NAME = "hana-connector-task";
 
     private volatile PostgresTaskContext taskContext;
     private volatile ChangeEventQueue<DataChangeEvent> queue;
-    private volatile PostgresConnection jdbcConnection;
-    private volatile PostgresConnection heartbeatConnection;
+    private volatile HanaConnection jdbcConnection;
+    private volatile HanaConnection heartbeatConnection;
     private volatile ErrorHandler errorHandler;
-    private volatile PostgresSchema schema;
+    private volatile HanaSchema schema;
 
     @Override
     public ChangeEventSourceCoordinator start(Configuration config) {
-        final PostgresConnectorConfig connectorConfig = new PostgresConnectorConfig(config);
-        final TopicSelector<TableId> topicSelector = PostgresTopicSelector.create(connectorConfig);
+        final HanaConnectorConfig connectorConfig = new HanaConnectorConfig(config);
+        final TopicSelector<TableId> topicSelector = HanaTopicSelector.create(connectorConfig);
         final Snapshotter snapshotter = connectorConfig.getSnapshotter();
 
         if (snapshotter == null) {
             throw new ConnectException("Unable to load snapshotter, if using custom snapshot mode, double check your settings");
         }
 
-        jdbcConnection = new PostgresConnection(connectorConfig.jdbcConfig());
-        heartbeatConnection = new PostgresConnection(connectorConfig.jdbcConfig());
+        jdbcConnection = new HanaConnection(connectorConfig.jdbcConfig());
+        heartbeatConnection = new HanaConnection(connectorConfig.jdbcConfig());
         final TypeRegistry typeRegistry = jdbcConnection.getTypeRegistry();
         final Charset databaseCharset = jdbcConnection.getDatabaseCharset();
 
-        schema = new PostgresSchema(connectorConfig, typeRegistry, databaseCharset, topicSelector);
+        schema = new HanaSchema(connectorConfig, typeRegistry, databaseCharset, topicSelector);
         this.taskContext = new PostgresTaskContext(connectorConfig, schema, topicSelector);
         final PostgresOffsetContext previousOffset = (PostgresOffsetContext) getPreviousOffset(new PostgresOffsetContext.Loader(connectorConfig));
         final Clock clock = Clock.system();
@@ -80,11 +80,10 @@ public class PostgresConnectorTask extends BaseSourceTask {
         try {
             // Print out the server information
             SlotState slotInfo = null;
-            try (PostgresConnection connection = taskContext.createConnection()) {
+            try (HanaConnection connection = taskContext.createConnection()) {
                 if (LOGGER.isInfoEnabled()) {
                     LOGGER.info(connection.serverInfo().toString());
                 }
-                slotInfo = connection.getReplicationSlotState(connectorConfig.slotName(), connectorConfig.plugin().getPostgresPluginName());
             }
             catch (SQLException e) {
                 LOGGER.warn("unable to load info of replication slot, Debezium will try to create the slot");
@@ -131,7 +130,7 @@ public class PostgresConnectorTask extends BaseSourceTask {
 
             errorHandler = new PostgresErrorHandler(connectorConfig.getLogicalName(), queue);
 
-            final PostgresEventMetadataProvider metadataProvider = new PostgresEventMetadataProvider();
+            final HanaEventMetadataProvider metadataProvider = new HanaEventMetadataProvider();
 
             Heartbeat heartbeat = Heartbeat.create(connectorConfig.getConfig(), topicSelector.getHeartbeatTopic(),
                     connectorConfig.getLogicalName(), heartbeatConnection);
@@ -176,7 +175,7 @@ public class PostgresConnectorTask extends BaseSourceTask {
         }
     }
 
-    public ReplicationConnection createReplicationConnection(PostgresTaskContext taskContext, boolean shouldExport,
+    public ReplicationConnection createReplicationConnection(HanaTaskContext taskContext, boolean shouldExport,
                                                              int maxRetries, Duration retryDelay)
             throws ConnectException {
         final Metronome metronome = Metronome.parker(retryDelay, Clock.SYSTEM);
@@ -240,10 +239,10 @@ public class PostgresConnectorTask extends BaseSourceTask {
 
     @Override
     protected Iterable<Field> getAllConfigurationFields() {
-        return PostgresConnectorConfig.ALL_FIELDS;
+        return HanaConnectorConfig.ALL_FIELDS;
     }
 
-    public PostgresTaskContext getTaskContext() {
+    public HanaTaskContext getTaskContext() {
         return taskContext;
     }
 }

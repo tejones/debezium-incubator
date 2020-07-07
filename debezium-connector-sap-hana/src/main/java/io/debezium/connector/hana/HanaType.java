@@ -12,30 +12,30 @@ import org.postgresql.core.Oid;
 import org.postgresql.core.TypeInfo;
 
 /**
- * A class that binds together a PostgresSQL OID, JDBC type id and the string name of the type.
+ * A class that binds together a SAP HANA OID, JDBC type id and the string name of the type.
  * The array types contain link to their element type.
  *
- * @author Jiri Pechanec
+ * @author Joao Tavares
  *
  */
-public class PostgresType {
+public class HanaType {
 
-    public static final PostgresType UNKNOWN = new PostgresType("unknown", -1, Integer.MIN_VALUE, null, null, null, null);
+    public static final HanaType UNKNOWN = new HanaType("unknown", -1, Integer.MIN_VALUE, null, null, null, null);
 
     private final String name;
     private final int oid;
     private final int jdbcId;
-    private final PostgresType parentType;
-    private final PostgresType elementType;
+    private final HanaType parentType;
+    private final HanaType elementType;
     private final TypeInfo typeInfo;
     private final int modifiers;
     private final List<String> enumValues;
 
-    private PostgresType(String name, int oid, int jdbcId, TypeInfo typeInfo, List<String> enumValues, PostgresType parentType, PostgresType elementType) {
+    private HanaType(String name, int oid, int jdbcId, TypeInfo typeInfo, List<String> enumValues, HanaType parentType, HanaType elementType) {
         this(name, oid, jdbcId, TypeRegistry.NO_TYPE_MODIFIER, typeInfo, enumValues, parentType, elementType);
     }
 
-    private PostgresType(String name, int oid, int jdbcId, int modifiers, TypeInfo typeInfo, List<String> enumValues, PostgresType parentType, PostgresType elementType) {
+    private HanaType(String name, int oid, int jdbcId, int modifiers, TypeInfo typeInfo, List<String> enumValues, HanaType parentType, HanaType elementType) {
         Objects.requireNonNull(name);
         this.name = name;
         this.oid = oid;
@@ -82,7 +82,7 @@ public class PostgresType {
 
     /**
      *
-     * @return PostgreSQL OID of this type
+     * @return SAP HANA OID of this type
      */
     public int getOid() {
         return oid;
@@ -100,24 +100,24 @@ public class PostgresType {
      *
      * @return the type of element in arrays or null for primitive types
      */
-    public PostgresType getElementType() {
+    public HanaType getElementType() {
         return elementType;
     }
 
     /**
      *
-     * @return the parent postgres type this type is based upon
+     * @return the parent sap hana type this type is based upon
      */
-    public PostgresType getParentType() {
+    public HanaType getParentType() {
         return parentType;
     }
 
     /**
      *
-     * @return the postgres type at the top/root level for this type's hierarchy
+     * @return the sap hana type at the top/root level for this type's hierarchy
      */
-    public PostgresType getRootType() {
-        PostgresType rootType = this;
+    public HanaType getRootType() {
+    	HanaType rootType = this;
         while (!rootType.isRootType()) {
             rootType = rootType.getParentType();
         }
@@ -196,7 +196,7 @@ public class PostgresType {
     }
 
     /**
-     * Get the underlying postgres type information object
+     * Get the underlying sap hana type information object
      * @return the type information object; may be null
      */
     public TypeInfo getTypeInfo() {
@@ -241,7 +241,7 @@ public class PostgresType {
         if (getClass() != obj.getClass()) {
             return false;
         }
-        PostgresType other = (PostgresType) obj;
+        HanaType other = (HanaType) obj;
         if (oid != other.oid) {
             return false;
         }
@@ -250,7 +250,7 @@ public class PostgresType {
 
     @Override
     public String toString() {
-        return "PostgresType [name=" + name + ", oid=" + oid + ", jdbcId=" + jdbcId + ", modifiers=" + modifiers + ", defaultLength=" + getDefaultLength()
+        return "HanaType [name=" + name + ", oid=" + oid + ", jdbcId=" + jdbcId + ", modifiers=" + modifiers + ", defaultLength=" + getDefaultLength()
                 + ", defaultScale=" + getDefaultScale() + ", parentType=" + parentType + ", elementType=" + elementType + "]";
     }
 
@@ -289,18 +289,18 @@ public class PostgresType {
             return this;
         }
 
-        public PostgresType build() {
-            PostgresType parentType = null;
+        public HanaType build() {
+        	HanaType parentType = null;
             if (parentTypeOid != 0) {
                 parentType = typeRegistry.get(parentTypeOid);
             }
 
-            PostgresType elementType = null;
+            HanaType elementType = null;
             if (elementTypeOid != 0) {
                 elementType = typeRegistry.get(elementTypeOid);
             }
 
-            return new PostgresType(name, oid, jdbcId, modifiers, typeInfo, enumValues, parentType, elementType);
+            return new HanaType(name, oid, jdbcId, modifiers, typeInfo, enumValues, parentType, elementType);
         }
     }
 }

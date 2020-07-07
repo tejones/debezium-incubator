@@ -34,7 +34,7 @@ import io.debezium.connector.hana.UnchangedToastedReplicationMessageColumn;
 import io.debezium.connector.hana.connection.AbstractMessageDecoder;
 import io.debezium.connector.hana.connection.AbstractReplicationMessageColumn;
 import io.debezium.connector.hana.connection.MessageDecoderConfig;
-import io.debezium.connector.hana.connection.PostgresConnection;
+import io.debezium.connector.hana.connection.HanaConnection;
 import io.debezium.connector.hana.connection.ReplicationMessage.Column;
 import io.debezium.connector.hana.connection.ReplicationMessage.NoopMessage;
 import io.debezium.connector.hana.connection.ReplicationMessage.Operation;
@@ -264,7 +264,7 @@ public class PgOutputMessageDecoder extends AbstractMessageDecoder {
         // Perform several out-of-bands database metadata queries
         Map<String, Boolean> columnOptionality;
         Set<String> primaryKeyColumns;
-        try (final PostgresConnection connection = new PostgresConnection(config.getConfiguration())) {
+        try (final HanaConnection connection = new HanaConnection(config.getConfiguration())) {
             final DatabaseMetaData databaseMetadata = connection.connection().getMetaData();
             columnOptionality = getTableColumnOptionalityFromDatabase(databaseMetadata, schemaName, tableName);
             primaryKeyColumns = getTablePrimaryKeyColumnNamesFromDatabase(databaseMetadata, schemaName, tableName);

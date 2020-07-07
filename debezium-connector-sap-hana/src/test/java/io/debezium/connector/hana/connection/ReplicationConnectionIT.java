@@ -96,7 +96,7 @@ public class ReplicationConnectionIT {
         };
         final int slotsBefore;
 
-        try (PostgresConnection connection = TestHelper.create()) {
+        try (HanaConnection connection = TestHelper.create()) {
             slotsBefore = connection.queryAndMap(slotQuery, slotQueryMapper);
         }
 
@@ -105,7 +105,7 @@ public class ReplicationConnectionIT {
             fail("Invalid slot name should fail");
         }
         catch (Exception e) {
-            try (PostgresConnection connection = TestHelper.create()) {
+            try (HanaConnection connection = TestHelper.create()) {
                 final int slotsAfter = connection.queryAndMap(slotQuery, slotQueryMapper);
                 for (int retry = 1; retry <= closeRetries; retry++) {
                     if (slotsAfter <= slotsBefore) {
@@ -322,7 +322,7 @@ public class ReplicationConnectionIT {
             catch (Throwable t) {
                 // make sure we always drop the slot if something fails - note the connection was created with the drop on close
                 // set to false
-                try (PostgresConnection conn = TestHelper.create()) {
+                try (HanaConnection conn = TestHelper.create()) {
                     conn.dropReplicationSlot(slotName);
                 }
                 throw t;

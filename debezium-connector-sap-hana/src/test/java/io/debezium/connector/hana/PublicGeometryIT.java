@@ -21,8 +21,8 @@ import org.junit.Test;
 import org.junit.rules.TestRule;
 
 import io.debezium.config.Configuration;
-import io.debezium.connector.hana.PostgresConnectorConfig.SnapshotMode;
-import io.debezium.connector.hana.connection.PostgresConnection;
+import io.debezium.connector.hana.HanaConnectorConfig.SnapshotMode;
+import io.debezium.connector.hana.connection.HanaConnection;
 import io.debezium.connector.hana.connection.ReplicationConnection;
 import io.debezium.connector.hana.junit.SkipTestDependingOnDecoderPluginNameRule;
 import io.debezium.data.Envelope;
@@ -49,7 +49,7 @@ public class PublicGeometryIT extends AbstractRecordsProducerTest {
     @Before
     public void before() throws Exception {
         // ensure the slot is deleted for each test
-        try (PostgresConnection conn = TestHelper.create()) {
+        try (HanaConnection conn = TestHelper.create()) {
             conn.dropReplicationSlot(ReplicationConnection.Builder.DEFAULT_SLOT_NAME);
         }
         TestHelper.dropAllSchemas();
@@ -90,7 +90,7 @@ public class PublicGeometryIT extends AbstractRecordsProducerTest {
 
     private void setupRecordsProducer(Configuration.Builder config) {
         start(PostgresConnector.class, config
-                .with(PostgresConnectorConfig.SNAPSHOT_MODE, SnapshotMode.NEVER)
+                .with(HanaConnectorConfig.SNAPSHOT_MODE, SnapshotMode.NEVER)
                 .build());
         assertConnectorIsRunning();
     }

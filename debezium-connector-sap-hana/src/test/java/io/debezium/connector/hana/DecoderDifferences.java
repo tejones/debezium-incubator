@@ -48,14 +48,14 @@ public class DecoderDifferences {
     }
 
     private static boolean wal2Json() {
-        return TestHelper.decoderPlugin() == PostgresConnectorConfig.LogicalDecoder.WAL2JSON
-                || TestHelper.decoderPlugin() == PostgresConnectorConfig.LogicalDecoder.WAL2JSON_RDS
-                || TestHelper.decoderPlugin() == PostgresConnectorConfig.LogicalDecoder.WAL2JSON_STREAMING
-                || TestHelper.decoderPlugin() == PostgresConnectorConfig.LogicalDecoder.WAL2JSON_RDS_STREAMING;
+        return TestHelper.decoderPlugin() == HanaConnectorConfig.LogicalDecoder.WAL2JSON
+                || TestHelper.decoderPlugin() == HanaConnectorConfig.LogicalDecoder.WAL2JSON_RDS
+                || TestHelper.decoderPlugin() == HanaConnectorConfig.LogicalDecoder.WAL2JSON_STREAMING
+                || TestHelper.decoderPlugin() == HanaConnectorConfig.LogicalDecoder.WAL2JSON_RDS_STREAMING;
     }
 
     private static boolean pgoutput() {
-        return TestHelper.decoderPlugin() == PostgresConnectorConfig.LogicalDecoder.PGOUTPUT;
+        return TestHelper.decoderPlugin() == HanaConnectorConfig.LogicalDecoder.PGOUTPUT;
     }
 
     /**
