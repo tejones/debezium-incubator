@@ -953,7 +953,7 @@ public class HanaConnectorConfig extends RelationalDatabaseConnectorConfig {
 		case V1:
 			return new LegacyV1HanaSourceInfoStructMaker(Module.name(), Module.version(), this);
 		default:
-			return new PostgresSourceInfoStructMaker(Module.name(), Module.version(), this);
+			return new HanaSourceInfoStructMaker(Module.name(), Module.version(), this);
 		}
 	}
 

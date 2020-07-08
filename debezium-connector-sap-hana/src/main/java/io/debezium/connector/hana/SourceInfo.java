@@ -66,22 +66,20 @@ import io.debezium.relational.TableId;
  * }
  * </pre>
  *
- * @author Horia Chiorean
+ * @author Joao Tavares
  */
 @NotThreadSafe
 public final class SourceInfo extends BaseSourceInfo {
 
     public static final String TIMESTAMP_USEC_KEY = "ts_usec";
     public static final String TXID_KEY = "txId";
-    public static final String XMIN_KEY = "xmin";
-    public static final String LSN_KEY = "lsn";
+    //public static final String LSN_KEY = "lsn";
     public static final String LAST_SNAPSHOT_RECORD_KEY = "last_snapshot_record";
 
     private final String dbName;
 
-    private Long lsn;
+    //private Long lsn;
     private Long txId;
-    private Long xmin;
     private Instant timestamp;
     private String schemaName;
     private String tableName;
@@ -94,22 +92,17 @@ public final class SourceInfo extends BaseSourceInfo {
     /**
      * Updates the source with information about a particular received or read event.
      *
-     * @param lsn the position in the server WAL for a particular event; may be null indicating that this information is not
-     * available
      * @param commitTime the commit time of the transaction that generated the event;
      * may be null indicating that this information is not available
      * @param txId the ID of the transaction that generated the transaction; may be null if this information is not available
      * @param tableId the table that should be included in the source info; may be null
-     * @param xmin the xmin of the slot, may be null
      * @return this instance
      */
-    protected SourceInfo update(Long lsn, Instant commitTime, Long txId, TableId tableId, Long xmin) {
-        this.lsn = lsn;
+    protected SourceInfo update(Instant commitTime, Long txId, TableId tableId, Long xmin) {
         if (commitTime != null) {
             this.timestamp = commitTime;
         }
         this.txId = txId;
-        this.xmin = xmin;
         if (tableId != null && tableId.schema() != null) {
             this.schemaName = tableId.schema();
         }
@@ -130,13 +123,6 @@ public final class SourceInfo extends BaseSourceInfo {
         return this;
     }
 
-    public Long lsn() {
-        return this.lsn;
-    }
-
-    public Long xmin() {
-        return this.xmin;
-    }
 
     @Override
     protected String database() {
@@ -170,14 +156,9 @@ public final class SourceInfo extends BaseSourceInfo {
         final StringBuilder sb = new StringBuilder("source_info[");
         sb.append("server='").append(serverName()).append('\'');
         sb.append("db='").append(dbName).append('\'');
-        if (lsn != null) {
-            sb.append(", lsn=").append(ReplicationConnection.format(lsn));
-        }
+
         if (txId != null) {
             sb.append(", txId=").append(txId);
-        }
-        if (xmin != null) {
-            sb.append(", xmin=").append(xmin);
         }
         if (timestamp != null) {
             sb.append(", timestamp=").append(timestamp);
