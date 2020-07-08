@@ -48,7 +48,7 @@ public class HanaConnectorTask extends BaseSourceTask {
     private static final Logger LOGGER = LoggerFactory.getLogger(HanaConnectorTask.class);
     private static final String CONTEXT_NAME = "hana-connector-task";
 
-    private volatile PostgresTaskContext taskContext;
+    private volatile HanaTaskContext taskContext;
     private volatile ChangeEventQueue<DataChangeEvent> queue;
     private volatile HanaConnection jdbcConnection;
     private volatile HanaConnection heartbeatConnection;
@@ -71,7 +71,7 @@ public class HanaConnectorTask extends BaseSourceTask {
         final Charset databaseCharset = jdbcConnection.getDatabaseCharset();
 
         schema = new HanaSchema(connectorConfig, typeRegistry, databaseCharset, topicSelector);
-        this.taskContext = new PostgresTaskContext(connectorConfig, schema, topicSelector);
+        this.taskContext = new HanaTaskContext(connectorConfig, schema, topicSelector);
         final PostgresOffsetContext previousOffset = (PostgresOffsetContext) getPreviousOffset(new PostgresOffsetContext.Loader(connectorConfig));
         final Clock clock = Clock.system();
 
@@ -128,7 +128,7 @@ public class HanaConnectorTask extends BaseSourceTask {
                     .loggingContextSupplier(() -> taskContext.configureLoggingContext(CONTEXT_NAME))
                     .build();
 
-            errorHandler = new PostgresErrorHandler(connectorConfig.getLogicalName(), queue);
+            errorHandler = new HanaErrorHandler(connectorConfig.getLogicalName(), queue);
 
             final HanaEventMetadataProvider metadataProvider = new HanaEventMetadataProvider();
 

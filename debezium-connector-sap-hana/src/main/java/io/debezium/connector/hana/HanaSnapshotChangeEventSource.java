@@ -33,9 +33,9 @@ import io.debezium.schema.SchemaChangeEvent;
 import io.debezium.schema.SchemaChangeEvent.SchemaChangeEventType;
 import io.debezium.util.Clock;
 
-public class PostgresSnapshotChangeEventSource extends RelationalSnapshotChangeEventSource {
+public class HanaSnapshotChangeEventSource extends RelationalSnapshotChangeEventSource {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(PostgresSnapshotChangeEventSource.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(HanaSnapshotChangeEventSource.class);
 
     private final HanaConnectorConfig connectorConfig;
     private final HanaConnection jdbcConnection;
@@ -43,7 +43,7 @@ public class PostgresSnapshotChangeEventSource extends RelationalSnapshotChangeE
     private final Snapshotter snapshotter;
     private final SlotCreationResult slotCreatedInfo;
 
-    public PostgresSnapshotChangeEventSource(HanaConnectorConfig connectorConfig, Snapshotter snapshotter, PostgresOffsetContext previousOffset,
+    public HanaSnapshotChangeEventSource(HanaConnectorConfig connectorConfig, Snapshotter snapshotter, PostgresOffsetContext previousOffset,
                                              HanaConnection jdbcConnection, HanaSchema schema, EventDispatcher<TableId> dispatcher, Clock clock,
                                              SnapshotProgressListener snapshotProgressListener, SlotCreationResult slotCreatedInfo) {
         super(connectorConfig, previousOffset, jdbcConnection, dispatcher, clock, snapshotProgressListener);
@@ -122,8 +122,10 @@ public class PostgresSnapshotChangeEventSource extends RelationalSnapshotChangeE
     protected void determineSnapshotOffset(RelationalSnapshotContext ctx) throws Exception {
         PostgresOffsetContext offset = (PostgresOffsetContext) ctx.offset;
         final long xlogStart = getTransactionStartLsn();
-        final long txId = jdbcConnection.currentTransactionId().longValue();
-        LOGGER.info("Read xlogStart at '{}' from transaction '{}'", ReplicationConnection.format(xlogStart), txId);
+        
+        //How to get the transaction ID from SAP HANA
+        //final long txId = jdbcConnection.currentTransactionId().longValue();
+        //LOGGER.info("Read xlogStart at '{}' from transaction '{}'", ReplicationConnection.format(xlogStart), txId);
         if (offset == null) {
             offset = PostgresOffsetContext.initialContext(connectorConfig, jdbcConnection, getClock());
             ctx.offset = offset;

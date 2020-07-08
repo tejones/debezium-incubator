@@ -55,7 +55,7 @@ public class PostgresStreamingChangeEventSource implements StreamingChangeEventS
     private final HanaSchema schema;
     private final PostgresOffsetContext offsetContext;
     private final HanaConnectorConfig connectorConfig;
-    private final PostgresTaskContext taskContext;
+    private final HanaTaskContext taskContext;
     private final ReplicationConnection replicationConnection;
     private final AtomicReference<ReplicationStream> replicationStream = new AtomicReference<>();
     private final Snapshotter snapshotter;
@@ -71,7 +71,7 @@ public class PostgresStreamingChangeEventSource implements StreamingChangeEventS
 
     public PostgresStreamingChangeEventSource(HanaConnectorConfig connectorConfig, Snapshotter snapshotter, PostgresOffsetContext offsetContext,
                                               HanaConnection connection, EventDispatcher<TableId> dispatcher, ErrorHandler errorHandler, Clock clock,
-                                              HanaSchema schema, PostgresTaskContext taskContext, ReplicationConnection replicationConnection) {
+                                              HanaSchema schema, HanaTaskContext taskContext, ReplicationConnection replicationConnection) {
         this.connectorConfig = connectorConfig;
         this.connection = connection;
         this.dispatcher = dispatcher;

@@ -26,12 +26,12 @@ import io.debezium.util.ElapsedTimeStrategy;
  * The context of a {@link HanaConnectorTask}. This deals with most of the brunt of reading various configuration options
  * and creating other objects with these various options.
  *
- * @author Horia Chiorean (hchiorea@redhat.com)
+ * @author Joao Tavares (hchiorea@redhat.com)
  */
 @ThreadSafe
-public class PostgresTaskContext extends CdcSourceTaskContext {
+public class HanaTaskContext extends CdcSourceTaskContext {
 
-    protected final static Logger LOGGER = LoggerFactory.getLogger(PostgresTaskContext.class);
+    protected final static Logger LOGGER = LoggerFactory.getLogger(HanaTaskContext.class);
 
     private final HanaConnectorConfig config;
     private final TopicSelector<TableId> topicSelector;
@@ -40,7 +40,7 @@ public class PostgresTaskContext extends CdcSourceTaskContext {
     private ElapsedTimeStrategy refreshXmin;
     private Long lastXmin;
 
-    protected PostgresTaskContext(HanaConnectorConfig config, HanaSchema schema, TopicSelector<TableId> topicSelector) {
+    protected HanaTaskContext(HanaConnectorConfig config, HanaSchema schema, TopicSelector<TableId> topicSelector) {
         super(config.getContextName(), config.getLogicalName(), Collections::emptySet);
 
         this.config = config;
@@ -72,6 +72,8 @@ public class PostgresTaskContext extends CdcSourceTaskContext {
         }
     }
 
+    
+    /* I think this does not apply to SAP HANA
     Long getSlotXmin(HanaConnection connection) throws SQLException {
         // when xmin fetch is set to 0, we don't track it to ignore any performance of querying the
         // slot periodically
@@ -94,11 +96,14 @@ public class PostgresTaskContext extends CdcSourceTaskContext {
 
         return lastXmin;
     }
+    
+    
 
     private SlotState getCurrentSlotState(HanaConnection connection) throws SQLException {
         return connection.getReplicationSlotState(config.slotName(), config.plugin().getPostgresPluginName());
     }
 
+    
     protected ReplicationConnection createReplicationConnection(boolean exportSnapshot) throws SQLException {
         final boolean dropSlotOnStop = config.dropSlotOnStop();
         if (dropSlotOnStop) {
@@ -120,6 +125,7 @@ public class PostgresTaskContext extends CdcSourceTaskContext {
                 .withSchema(schema)
                 .build();
     }
+    */
 
     protected HanaConnection createConnection() {
         return new HanaConnection(config.jdbcConfig());

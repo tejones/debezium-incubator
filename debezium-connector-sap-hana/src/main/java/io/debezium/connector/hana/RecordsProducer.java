@@ -24,10 +24,10 @@ import io.debezium.util.Clock;
 public abstract class RecordsProducer {
 
     protected final Logger logger = LoggerFactory.getLogger(getClass());
-    protected final PostgresTaskContext taskContext;
+    protected final HanaTaskContext taskContext;
     protected final SourceInfo sourceInfo;
 
-    protected RecordsProducer(PostgresTaskContext taskContext, SourceInfo sourceInfo) {
+    protected RecordsProducer(HanaTaskContext taskContext, SourceInfo sourceInfo) {
         assert taskContext != null;
         assert sourceInfo != null;
 

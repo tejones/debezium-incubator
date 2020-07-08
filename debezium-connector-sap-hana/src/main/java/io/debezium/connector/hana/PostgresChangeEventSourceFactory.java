@@ -27,14 +27,14 @@ public class PostgresChangeEventSourceFactory implements ChangeEventSourceFactor
     private final EventDispatcher<TableId> dispatcher;
     private final Clock clock;
     private final HanaSchema schema;
-    private final PostgresTaskContext taskContext;
+    private final HanaTaskContext taskContext;
     private final Snapshotter snapshotter;
     private final ReplicationConnection replicationConnection;
     private final SlotCreationResult slotCreatedInfo;
 
     public PostgresChangeEventSourceFactory(HanaConnectorConfig configuration, Snapshotter snapshotter, HanaConnection jdbcConnection,
                                             ErrorHandler errorHandler, EventDispatcher<TableId> dispatcher, Clock clock, HanaSchema schema,
-                                            PostgresTaskContext taskContext,
+                                            HanaTaskContext taskContext,
                                             ReplicationConnection replicationConnection, SlotCreationResult slotCreatedInfo) {
         this.configuration = configuration;
         this.jdbcConnection = jdbcConnection;
@@ -50,7 +50,7 @@ public class PostgresChangeEventSourceFactory implements ChangeEventSourceFactor
 
     @Override
     public SnapshotChangeEventSource getSnapshotChangeEventSource(OffsetContext offsetContext, SnapshotProgressListener snapshotProgressListener) {
-        return new PostgresSnapshotChangeEventSource(
+        return new HanaSnapshotChangeEventSource(
                 configuration,
                 snapshotter,
                 (PostgresOffsetContext) offsetContext,

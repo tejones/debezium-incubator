@@ -5,25 +5,27 @@
  */
 package io.debezium.connector.hana;
 
+import java.sql.SQLException;
+
 import org.postgresql.util.PSQLException;
 
 import io.debezium.connector.base.ChangeEventQueue;
 import io.debezium.pipeline.ErrorHandler;
 
 /**
- * Error handler for Postgres.
+ * Error handler for SAP HANA.
  *
- * @author Gunnar Morling
+ * @author Joao Tavares
  */
-public class PostgresErrorHandler extends ErrorHandler {
+public class HanaErrorHandler extends ErrorHandler {
 
-    public PostgresErrorHandler(String logicalName, ChangeEventQueue<?> queue) {
-        super(PostgresConnector.class, logicalName, queue);
+    public HanaErrorHandler(String logicalName, ChangeEventQueue<?> queue) {
+        super(HanaConnector.class, logicalName, queue);
     }
 
     @Override
     protected boolean isRetriable(Throwable throwable) {
-        if (throwable instanceof PSQLException
+        if (throwable instanceof SQLException
                 && (throwable.getMessage().contains("Database connection failed when writing to copy")
                         || throwable.getMessage().contains("Database connection failed when reading from copy"))) {
             return true;

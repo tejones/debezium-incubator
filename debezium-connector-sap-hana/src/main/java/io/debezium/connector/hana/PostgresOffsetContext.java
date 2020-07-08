@@ -29,7 +29,7 @@ import io.debezium.time.Conversions;
 import io.debezium.util.Clock;
 
 public class PostgresOffsetContext implements OffsetContext {
-    private static final Logger LOGGER = LoggerFactory.getLogger(PostgresSnapshotChangeEventSource.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(HanaSnapshotChangeEventSource.class);
 
     private static final String SERVER_PARTITION_KEY = "server";
     public static final String LAST_COMPLETELY_PROCESSED_LSN_KEY = "lsn_proc";

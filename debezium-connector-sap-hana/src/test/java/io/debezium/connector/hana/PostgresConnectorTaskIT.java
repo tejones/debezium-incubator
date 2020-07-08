@@ -29,7 +29,7 @@ public class PostgresConnectorTaskIT {
         postgresConnectorTask.commit();
     }
 
-    class FakeContext extends PostgresTaskContext {
+    class FakeContext extends HanaTaskContext {
         public FakeContext(HanaConnectorConfig postgresConnectorConfig, HanaSchema postgresSchema) {
             super(postgresConnectorConfig, postgresSchema, null);
         }
