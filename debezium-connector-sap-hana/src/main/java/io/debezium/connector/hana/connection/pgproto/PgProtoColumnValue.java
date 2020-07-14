@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 import io.debezium.connector.hana.PgOid;
 import io.debezium.connector.hana.PostgresStreamingChangeEventSource.PgConnectionSupplier;
 import io.debezium.connector.hana.PostgresType;
-import io.debezium.connector.hana.PostgresValueConverter;
+import io.debezium.connector.hana.HanaValueConverter;
 import io.debezium.connector.hana.TypeRegistry;
 import io.debezium.connector.hana.connection.AbstractColumnValue;
 import io.debezium.connector.hana.connection.wal2json.DateTimeFormat;
@@ -136,7 +136,7 @@ public class PgProtoColumnValue extends AbstractColumnValue<PgProto.DatumMessage
 
         final String s = asString();
         if (s != null) {
-            return PostgresValueConverter.toSpecialValue(s).orElseGet(() -> new SpecialValueDecimal(new BigDecimal(s)));
+            return HanaValueConverter.toSpecialValue(s).orElseGet(() -> new SpecialValueDecimal(new BigDecimal(s)));
         }
         return null;
     }

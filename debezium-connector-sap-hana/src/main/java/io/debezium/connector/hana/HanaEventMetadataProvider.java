@@ -45,6 +45,7 @@ class HanaEventMetadataProvider implements EventMetadataProvider {
         if (source == null) {
             return null;
         }
+
         Long xmin = sourceInfo.getInt64(SourceInfo.XMIN_KEY);
 
         Map<String, String> r = Collect.hashMapOf(
@@ -52,6 +53,7 @@ class HanaEventMetadataProvider implements EventMetadataProvider {
         if (xmin != null) {
             r.put(SourceInfo.XMIN_KEY, Long.toString(xmin));
         }
+
         return r;
     }
 

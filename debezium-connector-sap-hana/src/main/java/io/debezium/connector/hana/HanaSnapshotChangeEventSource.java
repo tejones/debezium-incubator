@@ -230,7 +230,7 @@ public class HanaSnapshotChangeEventSource extends RelationalSnapshotChangeEvent
                         return s;
                     }
 
-                    Optional<SpecialValueDecimal> value = PostgresValueConverter.toSpecialValue(s);
+                    Optional<SpecialValueDecimal> value = HanaValueConverter.toSpecialValue(s);
                     return value.isPresent() ? value.get() : new SpecialValueDecimal(rs.getBigDecimal(columnIndex));
                 case PgOid.TIME:
                     // To handle time 24:00:00 supported by TIME columns, read the column as a string.

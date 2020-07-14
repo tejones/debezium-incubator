@@ -29,9 +29,11 @@ import io.debezium.util.Collect;
 
 /**
  * A registry of types supported by a SAP HANA instance. Allows lookup of the types according to
- * type name or OID.
+ * type name or ID.
  * 
- * This wasa copied from the PostgreSQL connector, currently not completed for the HANA usecase
+ * This was copied from the PostgreSQL connector, currently not completed for the HANA usecase. 
+ * Also it was using Postgre OIDs, which are being phased out
+ * https://stackoverflow.com/questions/5625585/sql-postgres-oids-what-are-they-and-why-are-they-useful
  *
  * @author Joao Tavares
  *
@@ -40,17 +42,17 @@ public class TypeRegistry {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TypeRegistry.class);
 
-    public static final String TYPE_NAME_GEOGRAPHY = "geography";
+    //public static final String TYPE_NAME_GEOGRAPHY = "geography";
     public static final String TYPE_NAME_GEOMETRY = "geometry";
-    public static final String TYPE_NAME_CITEXT = "citext";
-    public static final String TYPE_NAME_HSTORE = "hstore";
-    public static final String TYPE_NAME_LTREE = "ltree";
+    //public static final String TYPE_NAME_CITEXT = "citext";
+    //public static final String TYPE_NAME_HSTORE = "hstore";
+    //public static final String TYPE_NAME_LTREE = "ltree";
 
-    public static final String TYPE_NAME_HSTORE_ARRAY = "_hstore";
-    public static final String TYPE_NAME_GEOGRAPHY_ARRAY = "_geography";
+    //public static final String TYPE_NAME_HSTORE_ARRAY = "_hstore";
+    //public static final String TYPE_NAME_GEOGRAPHY_ARRAY = "_geography";
     public static final String TYPE_NAME_GEOMETRY_ARRAY = "_geometry";
-    public static final String TYPE_NAME_CITEXT_ARRAY = "_citext";
-    public static final String TYPE_NAME_LTREE_ARRAY = "_ltree";
+    //public static final String TYPE_NAME_CITEXT_ARRAY = "_citext";
+    //public static final String TYPE_NAME_LTREE_ARRAY = "_ltree";
 
     public static final int NO_TYPE_MODIFIER = -1;
     public static final int UNKNOWN_LENGTH = -1;
@@ -59,6 +61,10 @@ public class TypeRegistry {
     public static final int DOMAIN_TYPE = Types.DISTINCT;
 
     private static final String CATEGORY_ENUM = "E";
+    
+    
+    /* The view SYS.DATA_TYPES in SAP HANA contains all the accepted data types in the databases,
+     * it does not contain information similar to this. I could be wrong...
 
     private static final String SQL_NON_ARRAY_TYPES = "SELECT t.oid AS oid, t.typname AS name, t.typbasetype AS parentoid, t.typtypmod as modifiers, t.typcategory as category "
             + "FROM pg_catalog.pg_type t JOIN pg_catalog.pg_namespace n ON (t.typnamespace = n.oid) "
@@ -79,6 +85,11 @@ public class TypeRegistry {
     private static final String SQL_ENUM_VALUES_LOOKUP = "select t.enumlabel as enum_value "
             + "FROM pg_catalog.pg_enum t "
             + "WHERE t.enumtypid=? ORDER BY t.enumsortorder";
+            
+         */
+    
+    private static final String SQL_TYPES = "SELECT dt.type_id AS id, dt.type_name AS name"
+            + "FROM SYS.DATA_TYPES dt";
 
     private static final Map<String, String> LONG_TYPE_NAMES = Collections.unmodifiableMap(getLongTypeNames());
 
@@ -132,85 +143,66 @@ public class TypeRegistry {
     }
 
     private final Map<String, HanaType> nameToType = new HashMap<>();
-    private final Map<Integer, HanaType> oidToType = new HashMap<>();
+    private final Map<Integer, HanaType> idToType = new HashMap<>();
 
-    private final HanaConnection connection;
+    private final HanaConnection connection = null;
 
     private int geometryOid = Integer.MIN_VALUE;
-    private int geographyOid = Integer.MIN_VALUE;
-    private int citextOid = Integer.MIN_VALUE;
-    private int hstoreOid = Integer.MIN_VALUE;
-    private int ltreeOid = Integer.MIN_VALUE;
+    //private int geographyOid = Integer.MIN_VALUE;
+    //private int citextOid = Integer.MIN_VALUE;
+    //private int hstoreOid = Integer.MIN_VALUE;
+    //private int ltreeOid = Integer.MIN_VALUE;
 
-    private int hstoreArrayOid = Integer.MIN_VALUE;
+    //private int hstoreArrayOid = Integer.MIN_VALUE;
     private int geometryArrayOid = Integer.MIN_VALUE;
-    private int geographyArrayOid = Integer.MIN_VALUE;
-    private int citextArrayOid = Integer.MIN_VALUE;
-    private int ltreeArrayOid = Integer.MIN_VALUE;
+    //private int geographyArrayOid = Integer.MIN_VALUE;
+    //private int citextArrayOid = Integer.MIN_VALUE;
+    //private int ltreeArrayOid = Integer.MIN_VALUE;
 
+    /*
     public TypeRegistry(HanaConnection connection) {
         this.connection = connection;
         prime();
     }
+    */
 
     private void addType(HanaType type) {
-        oidToType.put(type.getOid(), type);
+        idToType.put(type.getOid(), type);
         nameToType.put(type.getName(), type);
 
         if (TYPE_NAME_GEOMETRY.equals(type.getName())) {
             geometryOid = type.getOid();
         }
-        else if (TYPE_NAME_GEOGRAPHY.equals(type.getName())) {
-            geographyOid = type.getOid();
-        }
-        else if (TYPE_NAME_CITEXT.equals(type.getName())) {
-            citextOid = type.getOid();
-        }
-        else if (TYPE_NAME_HSTORE.equals(type.getName())) {
-            hstoreOid = type.getOid();
-        }
-        else if (TYPE_NAME_LTREE.equals(type.getName())) {
-            ltreeOid = type.getOid();
-        }
-        else if (TYPE_NAME_HSTORE_ARRAY.equals(type.getName())) {
-            hstoreArrayOid = type.getOid();
-        }
         else if (TYPE_NAME_GEOMETRY_ARRAY.equals(type.getName())) {
             geometryArrayOid = type.getOid();
-        }
-        else if (TYPE_NAME_GEOGRAPHY_ARRAY.equals(type.getName())) {
-            geographyArrayOid = type.getOid();
-        }
-        else if (TYPE_NAME_CITEXT_ARRAY.equals(type.getName())) {
-            citextArrayOid = type.getOid();
-        }
-        else if (TYPE_NAME_LTREE_ARRAY.equals(type.getName())) {
-            ltreeArrayOid = type.getOid();
         }
     }
 
     /**
      *
-     * @param oid - PostgreSQL OID
+     * @param oid - SAP HANA OID
      * @return type associated with the given OID
      */
-    public HanaType get(int oid) {
-        HanaType r = oidToType.get(oid);
+    /*
+    public HanaType get(int id) {
+        HanaType r = idToType.get(id);
         if (r == null) {
-            r = resolveUnknownType(oid);
+            r = resolveUnknownType(id);
             if (r == null) {
-                LOGGER.warn("Unknown OID {} requested", oid);
+                LOGGER.warn("Unknown OID {} requested", id);
                 r = HanaType.UNKNOWN;
             }
         }
         return r;
     }
+    */
 
     /**
      *
      * @param name - PostgreSQL type name
      * @return type associated with the given type name
      */
+    /*
     public HanaType get(String name) {
         switch (name) {
             case "serial":
@@ -240,6 +232,7 @@ public class TypeRegistry {
         }
         return r;
     }
+    */
 
     /**
      *
@@ -248,46 +241,7 @@ public class TypeRegistry {
     public int geometryOid() {
         return geometryOid;
     }
-
-    /**
-     *
-     * @return OID for {@code GEOGRAPHY} type of this PostgreSQL instance
-     */
-    public int geographyOid() {
-        return geographyOid;
-    }
-
-    /**
-     *
-     * @return OID for {@code CITEXT} type of this PostgreSQL instance
-     */
-    public int citextOid() {
-        return citextOid;
-    }
-
-    /**
-     *
-     * @return OID for {@code HSTORE} type of this PostgreSQL instance
-     */
-    public int hstoreOid() {
-        return hstoreOid;
-    }
-
-    /**
-     *
-     * @return OID for {@code LTREE} type of this PostgreSQL instance
-     */
-    public int ltreeOid() {
-        return ltreeOid;
-    }
-
-    /**
-    *
-    * @return OID for array of {@code HSTORE} type of this PostgreSQL instance
-    */
-    public int hstoreArrayOid() {
-        return hstoreArrayOid;
-    }
+  
 
     /**
      *
@@ -297,29 +251,6 @@ public class TypeRegistry {
         return geometryArrayOid;
     }
 
-    /**
-     *
-     * @return OID for array of {@code GEOGRAPHY} type of this PostgreSQL instance
-     */
-    public int geographyArrayOid() {
-        return geographyArrayOid;
-    }
-
-    /**
-     *
-     * @return OID for array of {@code CITEXT} type of this PostgreSQL instance
-     */
-    public int citextArrayOid() {
-        return citextArrayOid;
-    }
-
-    /**
-     *
-     * @return OID for array of {@code LTREE} type of this PostgreSQL instance
-     */
-    public int ltreeArrayOid() {
-        return ltreeArrayOid;
-    }
 
     /**
      * Converts a type name in long (readable) format like <code>boolean</code> to s standard
@@ -335,31 +266,30 @@ public class TypeRegistry {
     /**
      * Prime the {@link TypeRegistry} with all existing database types
      */
+    /* Still have to change this
+    
     private void prime() {
-        Connection pgConnection = null;
+        Connection hanaConnection = null;
         try {
-            pgConnection = connection.connection();
+        	hanaConnection = connection.connection();
 
-            final TypeInfo typeInfo = ((BaseConnection) pgConnection).getTypeInfo();
-            final SqlTypeMapper sqlTypeMapper = new SqlTypeMapper(pgConnection, typeInfo);
+            final TypeInfo typeInfo = ((BaseConnection) hanaConnection).getTypeInfo();
+            final SqlTypeMapper sqlTypeMapper = new SqlTypeMapper(hanaConnection, typeInfo);
 
-            try (final Statement statement = pgConnection.createStatement()) {
-                // Read non-array types
-                try (final ResultSet rs = statement.executeQuery(SQL_NON_ARRAY_TYPES)) {
+            try (final Statement statement = hanaConnection.createStatement()) {
+                // Read types
+                try (final ResultSet rs = statement.executeQuery(SQL_TYPES)) {
                     final List<HanaType.Builder> delayResolvedBuilders = new ArrayList<>();
                     while (rs.next()) {
                         // Coerce long to int so large unsigned values are represented as signed
                         // Same technique is used in TypeInfoCache
-                        final int oid = (int) rs.getLong("oid");
-                        final int parentTypeOid = (int) rs.getLong("parentoid");
-                        final int modifiers = (int) rs.getLong("modifiers");
+                        final int id = (int) rs.getLong("id");
                         String typeName = rs.getString("name");
-                        String category = rs.getString("category");
 
                         HanaType.Builder builder = new HanaType.Builder(
                                 this,
                                 typeName,
-                                oid,
+                                id,
                                 sqlTypeMapper.getSqlType(typeName),
                                 modifiers,
                                 typeInfo);
@@ -384,55 +314,22 @@ public class TypeRegistry {
                         addType(builder.build());
                     }
                 }
-
+                	
                 // Read array types
-                try (final ResultSet rs = statement.executeQuery(SQL_ARRAY_TYPES)) {
-                    final List<HanaType.Builder> delayResolvedBuilders = new ArrayList<>();
-                    while (rs.next()) {
-                        // int2vector and oidvector will not be treated as arrays
-                        final int oid = (int) rs.getLong("oid");
-                        final int parentTypeOid = (int) rs.getLong("parentoid");
-                        final int modifiers = (int) rs.getLong("modifiers");
-                        String typeName = rs.getString("name");
-
-                        HanaType.Builder builder = new HanaType.Builder(
-                                this,
-                                typeName,
-                                oid,
-                                sqlTypeMapper.getSqlType(typeName),
-                                modifiers,
-                                typeInfo);
-
-                        builder = builder.elementType((int) rs.getLong("element"));
-
-                        // If the type doesnot have a base type, we can build/add immediately
-                        if (parentTypeOid == 0) {
-                            addType(builder.build());
-                            continue;
-                        }
-
-                        // For types with base type mappings, they need to be delayed.
-                        builder = builder.parentType(parentTypeOid);
-                        delayResolvedBuilders.add(builder);
-                    }
-
-                    // Resolve delayed builders
-                    for (HanaType.Builder builder : delayResolvedBuilders) {
-                        addType(builder.build());
-                    }
-                }
+	
             }
 
         }
         catch (SQLException e) {
-            if (pgConnection == null) {
-                throw new ConnectException("Could not create PG connection", e);
+            if (hanaConnection == null) {
+                throw new ConnectException("Could not create Hana connection", e);
             }
             else {
                 throw new ConnectException("Could not initialize type registry", e);
             }
         }
     }
+
 
     private HanaType resolveUnknownType(String name) {
         try {
@@ -534,6 +431,7 @@ public class TypeRegistry {
         }
         return enumValues.isEmpty() ? null : enumValues;
     }
+     */
 
     /**
      * Allows to obtain the SQL type corresponding to HANA types.

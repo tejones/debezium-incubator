@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.debezium.annotation.NotThreadSafe;
+import io.debezium.config.CommonConnectorConfig.BinaryHandlingMode;
 import io.debezium.connector.hana.connection.HanaConnection;
 import io.debezium.connector.hana.connection.ServerInfo;
 import io.debezium.jdbc.JdbcConnection;
@@ -60,7 +61,7 @@ public class HanaSchema extends RelationalDatabaseSchema {
     protected HanaSchema(HanaConnectorConfig config, TypeRegistry typeRegistry, Charset databaseCharset,
                              TopicSelector<TableId> topicSelector) {
         super(config, topicSelector, new Filters(config).tableFilter(),
-                new Filters(config).columnFilter(), getTableSchemaBuilder(config, typeRegistry, databaseCharset), false,
+                new Filters(config).columnFilter(), getTableSchemaBuilder(config, typeRegistry, databaseCharset, config.binaryHandlingMode()), false,
                 config.getKeyMapper());
 
         this.typeRegistry = typeRegistry;
@@ -70,9 +71,9 @@ public class HanaSchema extends RelationalDatabaseSchema {
     }
     
     
-    /* Redo for Hana
-    private static TableSchemaBuilder getTableSchemaBuilder(HanaConnectorConfig config, TypeRegistry typeRegistry, Charset databaseCharset) {
-        PostgresValueConverter valueConverter = new PostgresValueConverter(
+    // Redo for Hana
+    private static TableSchemaBuilder getTableSchemaBuilder(HanaConnectorConfig config, TypeRegistry typeRegistry, Charset databaseCharset, BinaryHandlingMode binaryHandlingMode) {
+        HanaValueConverter valueConverter = new HanaValueConverter(
                 databaseCharset,
                 config.getDecimalMode(),
                 config.getTemporalPrecisionMode(),
@@ -80,14 +81,12 @@ public class HanaSchema extends RelationalDatabaseSchema {
                 null,
                 config.includeUnknownDatatypes(),
                 typeRegistry,
-                config.hStoreHandlingMode(),
-                config.intervalHandlingMode(),
-                config.toastedValuePlaceholder());
+                config.toastedValuePlaceholder(), binaryHandlingMode);
 
         return new TableSchemaBuilder(valueConverter, SchemaNameAdjuster.create(LOGGER), config.customConverterRegistry(), config.getSourceInfoStructMaker().schema(),
                 config.getSanitizeFieldNames());
     }
-    */
+
 
     /**
      * Initializes the content for this schema by reading all the database information from the supplied connection.

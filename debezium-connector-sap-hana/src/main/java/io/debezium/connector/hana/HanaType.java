@@ -270,7 +270,6 @@ public class HanaType {
             this.name = name;
             this.oid = oid;
             this.jdbcId = jdbcId;
-            this.modifiers = modifiers;
             this.typeInfo = typeInfo;
         }
 
