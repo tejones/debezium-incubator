@@ -41,17 +41,17 @@ public class HanaSnapshotChangeEventSource extends RelationalSnapshotChangeEvent
     private final HanaConnection jdbcConnection;
     private final HanaSchema schema;
     private final Snapshotter snapshotter;
-    private final SlotCreationResult slotCreatedInfo;
+    //private final SlotCreationResult slotCreatedInfo;
 
     public HanaSnapshotChangeEventSource(HanaConnectorConfig connectorConfig, Snapshotter snapshotter, PostgresOffsetContext previousOffset,
                                              HanaConnection jdbcConnection, HanaSchema schema, EventDispatcher<TableId> dispatcher, Clock clock,
-                                             SnapshotProgressListener snapshotProgressListener, SlotCreationResult slotCreatedInfo) {
+                                             SnapshotProgressListener snapshotProgressListener) {
         super(connectorConfig, previousOffset, jdbcConnection, dispatcher, clock, snapshotProgressListener);
         this.connectorConfig = connectorConfig;
         this.jdbcConnection = jdbcConnection;
         this.schema = schema;
         this.snapshotter = snapshotter;
-        this.slotCreatedInfo = slotCreatedInfo;
+        //this.slotCreatedInfo = slotCreatedInfo;
     }
 
     @Override
@@ -73,13 +73,13 @@ public class HanaSnapshotChangeEventSource extends RelationalSnapshotChangeEvent
 
     @Override
     protected SnapshotContext prepare(ChangeEventSourceContext context) throws Exception {
-        return new PostgresSnapshotContext(connectorConfig.databaseName());
+        return new HanaSnapshotContext(connectorConfig.databaseName());
     }
 
     @Override
     protected void connectionCreated(RelationalSnapshotContext snapshotContext) throws Exception {
         LOGGER.info("Setting isolation level");
-        String transactionStatement = snapshotter.snapshotTransactionIsolationLevelStatement(slotCreatedInfo);
+        String transactionStatement = snapshotter.snapshotTransactionIsolationLevelStatement();
         LOGGER.info("Opening transaction with statement {}", transactionStatement);
         jdbcConnection.executeWithoutCommitting(transactionStatement);
         schema.refresh(jdbcConnection, false);
@@ -123,11 +123,10 @@ public class HanaSnapshotChangeEventSource extends RelationalSnapshotChangeEvent
         PostgresOffsetContext offset = (PostgresOffsetContext) ctx.offset;
         final long xlogStart = getTransactionStartLsn();
         
-        //How to get the transaction ID from SAP HANA
-        //final long txId = jdbcConnection.currentTransactionId().longValue();
-        //LOGGER.info("Read xlogStart at '{}' from transaction '{}'", ReplicationConnection.format(xlogStart), txId);
+        final long txId = jdbcConnection.currentTransactionId().longValue();
+        LOGGER.info("Read xlogStart at '{}' from transaction '{}'", ReplicationConnection.format(xlogStart), txId);
         if (offset == null) {
-            offset = PostgresOffsetContext.initialContext(connectorConfig, jdbcConnection, getClock());
+            offset = HanaOffsetContext.initialContext(connectorConfig, jdbcConnection, getClock());
             ctx.offset = offset;
         }
 
@@ -255,9 +254,9 @@ public class HanaSnapshotChangeEventSource extends RelationalSnapshotChangeEvent
     /**
      * Mutable context which is populated in the course of snapshotting.
      */
-    private static class PostgresSnapshotContext extends RelationalSnapshotContext {
+    private static class HanaSnapshotContext extends RelationalSnapshotContext {
 
-        public PostgresSnapshotContext(String catalogName) throws SQLException {
+        public HanaSnapshotContext(String catalogName) throws SQLException {
             super(catalogName);
         }
     }

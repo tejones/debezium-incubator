@@ -64,12 +64,11 @@ public interface Snapshotter {
     /**
      * Return a new string that set up the transaction for snapshotting
      *
-     * @param newSlotInfo if a new slow was created for snapshotting, this contains information from
-     *                    the `create_replication_slot` command
      */
-    default String snapshotTransactionIsolationLevelStatement(SlotCreationResult newSlotInfo) {
-        // we're using the same isolation level that pg_backup uses
-        return "SET TRANSACTION ISOLATION LEVEL SERIALIZABLE, READ ONLY, DEFERRABLE;";
+    default String snapshotTransactionIsolationLevelStatement() {
+        // Removed , DEFERRABLE after READ ONLY because SAP HANA does not seem to have this option
+    	//https://help.sap.com/viewer/4fe29514fd584807ac9f2a04f6754767/2.0.03/en-US/20fdf9cb75191014b85aaa9dec841291.html
+        return "SET TRANSACTION ISOLATION LEVEL SERIALIZABLE, READ ONLY;";
     }
 
     /**
@@ -80,12 +79,12 @@ public interface Snapshotter {
         String lineSeparator = System.lineSeparator();
         StringBuilder statements = new StringBuilder();
         statements.append("SET lock_timeout = ").append(lockTimeout.toMillis()).append(";").append(lineSeparator);
-        // we're locking in ACCESS SHARE MODE to avoid concurrent schema changes while we're taking the snapshot
-        // this does not prevent writes to the table, but prevents changes to the table's schema....
-        // DBZ-298 Quoting name in case it has been quoted originally; it doesn't do harm if it hasn't been quoted
+        // EXCLUSIVE MODE used to block DDL commands so that the table structure does not change
+        // however, the table will still allow DML commands (SELECT, INSERT,...)
+        // http://sap.optimieren.de/hana/hana/html/sql_lock_table.html
         tableIds.forEach(tableId -> statements.append("LOCK TABLE ")
                 .append(tableId.toDoubleQuotedString())
-                .append(" IN ACCESS SHARE MODE;")
+                .append(" IN EXCLUSIVE MODE;")
                 .append(lineSeparator));
         return Optional.of(statements.toString());
     }

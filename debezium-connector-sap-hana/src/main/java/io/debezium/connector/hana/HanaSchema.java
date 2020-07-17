@@ -99,15 +99,22 @@ public class HanaSchema extends RelationalDatabaseSchema {
     protected HanaSchema refresh(HanaConnection connection, boolean printReplicaIdentityInfo) throws SQLException {
         // read all the information from the DB
         connection.readSchema(tables(), null, null, getTableFilter(), null, true);
+        
+        /*
         if (printReplicaIdentityInfo) {
             // print out all the replica identity info
             tableIds().forEach(tableId -> printReplicaIdentityInfo(connection, tableId));
         }
+        */
+        
         // and then refresh the schemas
         refreshSchemas();
+        
+        /*
         if (readToastableColumns) {
             tableIds().forEach(tableId -> refreshToastableColumnsMap(connection, tableId));
         }
+        */
         return this;
     }
     
@@ -144,11 +151,13 @@ public class HanaSchema extends RelationalDatabaseSchema {
         tables().overwriteTable(temp.forTable(tableId));
         // refresh the schema
         refreshSchema(tableId);
-
+        
+        /*
         if (refreshToastableColumns) {
             // and refresh toastable columns info
             refreshToastableColumnsMap(connection, tableId);
         }
+        */
     }
 
     /**

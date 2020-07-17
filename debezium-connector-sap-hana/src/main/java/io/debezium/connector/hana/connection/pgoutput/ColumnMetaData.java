@@ -6,6 +6,7 @@
 package io.debezium.connector.hana.connection.pgoutput;
 
 import io.debezium.annotation.Immutable;
+import io.debezium.connector.hana.HanaType;
 import io.debezium.connector.hana.PostgresType;
 import io.debezium.connector.hana.TypeRegistry;
 
@@ -18,7 +19,7 @@ import io.debezium.connector.hana.TypeRegistry;
 @Immutable
 public class ColumnMetaData {
     private final String columnName;
-    private final PostgresType postgresType;
+    private final HanaType hanaType;
     private final boolean key;
     private final boolean optional;
     private final int length;

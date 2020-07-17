@@ -145,7 +145,7 @@ public class TypeRegistry {
     private final Map<String, HanaType> nameToType = new HashMap<>();
     private final Map<Integer, HanaType> idToType = new HashMap<>();
 
-    private final HanaConnection connection = null;
+    private final HanaConnection connection;
 
     private int geometryOid = Integer.MIN_VALUE;
     //private int geographyOid = Integer.MIN_VALUE;
@@ -159,12 +159,12 @@ public class TypeRegistry {
     //private int citextArrayOid = Integer.MIN_VALUE;
     //private int ltreeArrayOid = Integer.MIN_VALUE;
 
-    /*
+
     public TypeRegistry(HanaConnection connection) {
         this.connection = connection;
-        prime();
+        //prime();
     }
-    */
+
 
     private void addType(HanaType type) {
         idToType.put(type.getOid(), type);
@@ -266,8 +266,7 @@ public class TypeRegistry {
     /**
      * Prime the {@link TypeRegistry} with all existing database types
      */
-    /* Still have to change this
-    
+    // Still have to change this
     private void prime() {
         Connection hanaConnection = null;
         try {
@@ -291,13 +290,14 @@ public class TypeRegistry {
                                 typeName,
                                 id,
                                 sqlTypeMapper.getSqlType(typeName),
-                                modifiers,
+                                0,
                                 typeInfo);
-
+                        
+                        /*
                         if (CATEGORY_ENUM.equals(category)) {
                             builder = builder.enumValues(resolveEnumValues(pgConnection, oid));
                         }
-
+                        
                         // If the type does have have a base type, we can build/add immediately.
                         if (parentTypeOid == 0) {
                             addType(builder.build());
@@ -307,6 +307,7 @@ public class TypeRegistry {
                         // For types with base type mappings, they need to be delayed.
                         builder = builder.parentType(parentTypeOid);
                         delayResolvedBuilders.add(builder);
+                        */
                     }
 
                     // Resolve delayed builders
@@ -330,7 +331,7 @@ public class TypeRegistry {
         }
     }
 
-
+    /*
     private HanaType resolveUnknownType(String name) {
         try {
             LOGGER.trace("Type '{}' not cached, attempting to lookup from database.", name);

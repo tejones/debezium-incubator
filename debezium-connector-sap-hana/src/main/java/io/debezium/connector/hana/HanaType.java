@@ -271,6 +271,7 @@ public class HanaType {
             this.oid = oid;
             this.jdbcId = jdbcId;
             this.typeInfo = typeInfo;
+            this.modifiers = modifiers;
         }
 
         public Builder parentType(int parentTypeOid) {
@@ -289,15 +290,22 @@ public class HanaType {
         }
 
         public HanaType build() {
+        	
         	HanaType parentType = null;
+        	
+        	/*
             if (parentTypeOid != 0) {
                 parentType = typeRegistry.get(parentTypeOid);
             }
+          	*/
 
             HanaType elementType = null;
+            
+            /*
             if (elementTypeOid != 0) {
                 elementType = typeRegistry.get(elementTypeOid);
             }
+            */
 
             return new HanaType(name, oid, jdbcId, modifiers, typeInfo, enumValues, parentType, elementType);
         }
