@@ -20,7 +20,7 @@ import io.debezium.connector.hana.spi.Snapshotter;
 import io.debezium.relational.TableId;
 
 /**
- * @author Chris Cranford
+ * @author Joao Tavares
  */
 public class ExportedSnapshotter implements Snapshotter {
 
@@ -69,11 +69,13 @@ public class ExportedSnapshotter implements Snapshotter {
     }
 
     @Override
-    public String snapshotTransactionIsolationLevelStatement(SlotCreationResult newSlotInfo) {
-        if (newSlotInfo != null) {
-            String snapSet = String.format("SET TRANSACTION SNAPSHOT '%s';", newSlotInfo.snapshotName());
-            return "SET TRANSACTION ISOLATION LEVEL REPEATABLE READ; \n" + snapSet;
-        }
-        return Snapshotter.super.snapshotTransactionIsolationLevelStatement(newSlotInfo);
+    public String snapshotTransactionIsolationLevelStatement() {
+        //if (newSlotInfo != null) {
+            //String snapSet = String.format("SET TRANSACTION SNAPSHOT '%s';", newSlotInfo.snapshotName());
+            
+        //}
+        //return Snapshotter.super.snapshotTransactionIsolationLevelStatement(newSlotInfo);
+        
+        return "SET TRANSACTION ISOLATION LEVEL SERIALIZABLE, READ ONLY; \n";
     }
 }

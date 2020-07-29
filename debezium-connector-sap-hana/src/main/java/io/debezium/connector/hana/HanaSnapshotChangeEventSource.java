@@ -8,6 +8,7 @@ package io.debezium.connector.hana;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.sql.Savepoint;
 import java.time.Duration;
 import java.util.Optional;
 import java.util.Set;
@@ -116,6 +117,9 @@ public class HanaSnapshotChangeEventSource extends RelationalSnapshotChangeEvent
 
     @Override
     protected void releaseSchemaSnapshotLocks(RelationalSnapshotContext snapshotContext) throws SQLException {
+    	
+        jdbcConnection.connection().rollback(((HanaSnapshotContext) snapshotContext).preSchemaSnapshotSavepoint);
+        LOGGER.info("Schema locks released.");
     }
 
     @Override
@@ -255,6 +259,8 @@ public class HanaSnapshotChangeEventSource extends RelationalSnapshotChangeEvent
      * Mutable context which is populated in the course of snapshotting.
      */
     private static class HanaSnapshotContext extends RelationalSnapshotContext {
+    	
+    	private Savepoint preSchemaSnapshotSavepoint;
 
         public HanaSnapshotContext(String catalogName) throws SQLException {
             super(catalogName);

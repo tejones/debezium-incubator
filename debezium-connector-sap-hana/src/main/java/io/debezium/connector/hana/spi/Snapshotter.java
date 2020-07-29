@@ -78,13 +78,16 @@ public interface Snapshotter {
     default Optional<String> snapshotTableLockingStatement(Duration lockTimeout, Set<TableId> tableIds) {
         String lineSeparator = System.lineSeparator();
         StringBuilder statements = new StringBuilder();
-        statements.append("SET lock_timeout = ").append(lockTimeout.toMillis()).append(";").append(lineSeparator);
+        //statements.append("SET lock_timeout = ").append(lockTimeout.toMillis()).append(";").append(lineSeparator);
         // EXCLUSIVE MODE used to block DDL commands so that the table structure does not change
         // however, the table will still allow DML commands (SELECT, INSERT,...)
         // http://sap.optimieren.de/hana/hana/html/sql_lock_table.html
         tableIds.forEach(tableId -> statements.append("LOCK TABLE ")
                 .append(tableId.toDoubleQuotedString())
-                .append(" IN EXCLUSIVE MODE;")
+                .append(" IN EXCLUSIVE MODE")
+                .append(" WAIT ")
+                .append(lockTimeout)
+                .append(";")
                 .append(lineSeparator));
         return Optional.of(statements.toString());
     }
